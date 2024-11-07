@@ -96,61 +96,57 @@ export function MainMenu({
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="relative px-4 sm:px-8 py-8 max-w-md w-full mx-auto flex flex-col min-h-[500px] h-full max-h-screen"
+        className="px-4 sm:px-8 py-8 max-w-md w-full mx-auto flex flex-col gap-8 justify-center"
       >
-        <div className="flex-1 flex flex-col justify-center gap-8">
-          <div className="mb-12">
-            <Title />
-          </div>
+        <Title />
+        
+        <motion.div {...MENU_ANIMATIONS.BUTTON}>
+          <Button 
+            variant="default" 
+            size="lg"
+            className="w-full py-6 sm:py-8 text-xl"
+            onClick={handleStartGame}
+          >
+            {t('startGame', language)}
+          </Button>
+        </motion.div>
 
-          <motion.div {...MENU_ANIMATIONS.BUTTON}>
-            <Button 
-              variant="default" 
-              size="lg"
-              className="w-full py-6 sm:py-8 text-xl"
-              onClick={handleStartGame}
+        <div className="flex justify-center gap-3 sm:gap-4">
+          {mounted && (
+            <motion.div {...MENU_ANIMATIONS.LANGUAGE_BUTTON}>
+              <Button
+                variant="default"
+                size="icon"
+                className="h-14 w-14 sm:h-16 sm:w-16 p-2"
+                onClick={toggleLanguage}
+                aria-label={`Switch to ${language === 'en' ? 'French' : 'English'}`}
+              >
+                <LanguageFlag language={language} />
+              </Button>
+            </motion.div>
+          )}
+
+          <motion.div {...MENU_ANIMATIONS.LANGUAGE_BUTTON}>
+            <Button
+              variant="default"
+              size="icon"
+              className="h-14 w-14 sm:h-16 sm:w-16 p-2"
+              onClick={() => setShowHelp(true)}
             >
-              {t('startGame', language)}
+              <Book size={24} />
             </Button>
           </motion.div>
 
-          <div className="flex justify-center gap-3 sm:gap-4">
-            {mounted && (
-              <motion.div {...MENU_ANIMATIONS.LANGUAGE_BUTTON}>
-                <Button
-                  variant="default"
-                  size="icon"
-                  className="h-14 w-14 sm:h-16 sm:w-16 p-2"
-                  onClick={toggleLanguage}
-                  aria-label={`Switch to ${language === 'en' ? 'French' : 'English'}`}
-                >
-                  <LanguageFlag language={language} />
-                </Button>
-              </motion.div>
-            )}
-
-            <motion.div {...MENU_ANIMATIONS.LANGUAGE_BUTTON}>
-              <Button
-                variant="default"
-                size="icon"
-                className="h-14 w-14 sm:h-16 sm:w-16 p-2"
-                onClick={() => setShowHelp(true)}
-              >
-                <Book size={24} />
-              </Button>
-            </motion.div>
-
-            <motion.div {...MENU_ANIMATIONS.LANGUAGE_BUTTON}>
-              <Button
-                variant="default"
-                size="icon"
-                className="h-14 w-14 sm:h-16 sm:w-16 p-2"
-                onClick={() => setIsSettingsOpen(true)}
-              >
-                <Settings size={24} />
-              </Button>
-            </motion.div>
-          </div>
+          <motion.div {...MENU_ANIMATIONS.LANGUAGE_BUTTON}>
+            <Button
+              variant="default"
+              size="icon"
+              className="h-14 w-14 sm:h-16 sm:w-16 p-2"
+              onClick={() => setIsSettingsOpen(true)}
+            >
+              <Settings size={24} />
+            </Button>
+          </motion.div>
         </div>
       </motion.div>
 

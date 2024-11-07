@@ -20,7 +20,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={cn(
         inter.className,
-        "min-h-screen bg-background font-sans antialiased relative overflow-hidden"
+        "min-h-screen bg-background font-sans antialiased"
       )} suppressHydrationWarning={true}>
         <div className="ambient-background">
           <div className="blob" style={{
@@ -42,9 +42,7 @@ export default function RootLayout({
             animation: 'float-blob-1 22s infinite',
           }} />
         </div>
-        <div className="relative z-10 min-h-screen">
-          {children}
-        </div>
+        {children}
         <Toaster />
       </body>
     </html>
