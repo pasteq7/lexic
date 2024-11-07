@@ -11,7 +11,6 @@ import {
   TRIES, 
   createInitialStats, 
   updateGameStats, 
-  type Language,
   saveLanguagePreference,
   getLanguagePreference,
   LetterState,
@@ -25,7 +24,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Home } from 'lucide-react';
 import { Card } from '../ui/card';
-import { t, TranslationKey } from '@/lib/translations';
+import { t, TranslationKey, Language } from '@/lib/translations';
 
 export function Game() {
   const [showStats, setShowStats] = useState(false);

@@ -12,8 +12,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog"
-import { t } from '@/lib/translations';
-import { Language } from '@/lib/words';
+import { Language, t } from '@/lib/translations';
 
 interface SettingsDialogProps {
   isOpen: boolean;

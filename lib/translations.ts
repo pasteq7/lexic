@@ -1,4 +1,4 @@
-import { Language } from "./words";
+export type Language = 'en' | 'fr';
 
 export type TranslationKey = 
   | 'startGame'
@@ -116,5 +116,4 @@ export function t(key: TranslationKey, lang: Language, params?: Record<string, s
     text
   );
 }
-export type { Language };
 

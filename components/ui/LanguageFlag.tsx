@@ -1,4 +1,4 @@
-import { Language } from '@/lib/words';
+import { Language } from '@/lib/translations';
 
 interface LanguageFlagProps {
   language: Language;

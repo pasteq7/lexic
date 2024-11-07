@@ -1,8 +1,7 @@
 import { GameStats, GuessResult } from '@/lib/words';
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { t } from '@/lib/translations';
-import { Language } from '@/lib/words';
+import { t, Language } from '@/lib/translations';
 
 interface StatsCardProps {
   stats: GameStats;

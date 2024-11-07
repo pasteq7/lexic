@@ -1,6 +1,6 @@
 import englishWords from 'an-array-of-english-words';
 import frenchWords from 'an-array-of-french-words';
-import { TranslationKey } from './translations';
+import { Language, TranslationKey } from './translations';
 
 // Add type definitions for the imported arrays
 const englishWordsArray: string[] = englishWords as string[];
@@ -221,9 +221,6 @@ export function calculateStats(guesses: string[], answer: string): {
     presentLetters: states.filter(s => s === 'present').length,
   };
 }
-
-// Add at the top
-export type Language = 'en' | 'fr';
 
 // Add language settings helper
 export function saveLanguagePreference(lang: Language) {

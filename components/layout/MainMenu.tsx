@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { KeyboardLayout, MENU_ANIMATIONS } from '@/lib/utils';
-import { Language } from '@/lib/words';
+import { Language } from '@/lib/translations';
 import { Book, Settings } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { LanguageFlag } from '@/components/ui/LanguageFlag';
