@@ -35,7 +35,6 @@ export function Game() {
   const [keyboardLayout, setKeyboardLayout] = useState<KeyboardLayout>(() => 
     loadGameState('keyboardLayout', 'qwerty')
   );
-  const [letterStates, setLetterStates] = useState<Record<string, string>>({});
 
   const {
     wordLength,
@@ -85,11 +84,6 @@ export function Game() {
       setTimeout(() => setShake(false), 500);
       return;
     }
-
-    setLetterStates(prev => ({
-      ...prev,
-      ...result.letterStates
-    }));
 
     if (result.isCorrect) {
       handleGameEnd(true, result.guessCount || 0);
@@ -200,9 +194,7 @@ export function Game() {
               stats={stats}
               gameOver={gameOver}
               keyStates={keyStates}
-              language={language}
               onKeyPress={handleKeyPress}
-              onHome={handleHome}
               onNewGame={() => {
                 setShowStats(false);
                 newGame();

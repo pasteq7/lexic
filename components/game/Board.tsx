@@ -1,15 +1,14 @@
 import { motion } from 'framer-motion';
-import { Language, TRIES, type LetterState, GuessResult } from '@/lib/words';
+import {  TRIES, type LetterState, GuessResult } from '@/lib/words';
 import { Cell } from '@/components/game/Cell';
 interface BoardProps {
   guesses: GuessResult[];
   currentGuess: string;
   wordLength: number;
   shake: boolean;
-  language: Language;
 }
 
-export function Board({ guesses, currentGuess, wordLength, shake, language }: BoardProps) {
+export function Board({ guesses, currentGuess, wordLength, shake }: BoardProps) {
   if (!wordLength) return null;
 
   return (

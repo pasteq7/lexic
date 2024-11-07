@@ -1,9 +1,8 @@
 import { Board } from './Board';
 import { Keyboard } from './Keyboard';
 import { StatsCard } from './StatsCard';
-import { type Language, GuessResult } from '@/lib/words';
+import { GuessResult, type GameStats } from '@/lib/words';
 import { type KeyState, KeyboardLayout } from '@/lib/utils';
-import { t } from '@/lib/translations';
 
 interface GameBoardProps {
   guesses: GuessResult[];
@@ -11,14 +10,12 @@ interface GameBoardProps {
   wordLength: number;
   shake: boolean;
   showStats: boolean;
-  stats: any;
+  stats: GameStats;
   gameOver: boolean;
   keyStates: Record<string, KeyState>;
-  language: Language;
   onKeyPress: (key: string) => void;
-  onHome: () => void;
   onNewGame: () => void;
-  onShare: () => void;
+
   keyboardLayout: KeyboardLayout;
   revealedAnswer?: string | null;
 }
@@ -32,10 +29,8 @@ export function GameBoard({
   stats,
   gameOver,
   keyStates,
-  language,
   onKeyPress,
   onNewGame,
-  onShare,
   keyboardLayout,
   revealedAnswer,
 }: GameBoardProps) {
@@ -47,7 +42,6 @@ export function GameBoard({
           currentGuess={currentGuess}
           wordLength={wordLength}
           shake={shake}
-          language={language}
         />
         <div className="w-full pb-4">
           <Keyboard
@@ -64,7 +58,6 @@ export function GameBoard({
           gameOver={gameOver}
           guesses={guesses}
           onNewGame={onNewGame}
-          onShare={onShare}
           revealedAnswer={revealedAnswer}
         />
       )}

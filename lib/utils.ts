@@ -59,7 +59,7 @@ export function getKeyboardState(
 }
 
 // Add localStorage helpers
-export function saveGameState(key: string, value: any) {
+export function saveGameState<T>(key: string, value: T): void {
   if (typeof window !== 'undefined') {
     window.localStorage.setItem(key, JSON.stringify(value));
   }

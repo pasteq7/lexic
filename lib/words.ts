@@ -71,7 +71,7 @@ export function isWordValid(word: string, expectedLength: number, language: Lang
     return false;
   }
   
-  // Then check if it's a valid word in the dictionary
+  // Pass the language parameter to isValidGuess
   return isValidGuess(word, language);
 }
   
@@ -80,7 +80,6 @@ export type LetterState = "correct" | "present" | "absent" | "empty";
 export function getLetterStates(
   guess: string, 
   answer: string, 
-  language: Language = 'en'
 ): LetterState[] {
   const states: LetterState[] = Array(guess.length).fill('absent');
   const answerLetters = removeAccents(answer.toLowerCase()).split('');
