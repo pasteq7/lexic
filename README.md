@@ -1,41 +1,36 @@
-# Lexic - A Modern Wordle Clone
+# Lexic - Modern Word Guessing Game
 
-Lexic is a modern, feature-rich implementation of the popular word-guessing game Wordle, built with Next.js 14, TypeScript, and Tailwind CSS. It includes multilingual support, customizable keyboard layouts, and animations.
+A sophisticated implementation of a word-guessing game built with modern web technologies. Features multilingual support, customizable keyboard layouts, and an elegant user interface.
 
-## Features
+## ✨ Key Features
 
-- 🌍 Multilingual support (English and French)
-- ⌨️ Customizable keyboard layouts (QWERTY/AZERTY)
-- 🎨 Beautiful UI with ambient background animations
-- 📱 Fully responsive design
-- 🎮 Game statistics tracking
+- 🌐 Multilingual gameplay (English & French)
+- ⌨️ Multiple keyboard layouts (QWERTY/AZERTY)
+- 🎨 UI with ambient animations
+- 📱 Responsive design 
+- 📊 Game statistics
+- 🔒 Secure game state management
 
-## Tech Stack
+## 🛠️ Technology Stack
 
-- [Next.js 14](https://nextjs.org/)
-- [TypeScript](https://www.typescriptlang.org/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Framer Motion](https://www.framer.com/motion/)
-- [Radix UI](https://www.radix-ui.com/)
-- [Lucide Icons](https://lucide.dev/)
+- **Framework:** Next.js 14
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS
+- **Animations:** Framer Motion
+- **UI Components:** Radix UI
+- **Icons:** Lucide Icons
 
-## Getting Started
+## 🚀 Getting Started
 
-1. Clone the repository:
+1. **Clone and Install:**
 ```bash
 git clone https://github.com/pasteq7/lexic.git
 cd lexic
-```
-
-2. Install dependencies:
-```bash
 npm install
 ```
 
-3. Run the development server:
 ```bash
 npm run dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
