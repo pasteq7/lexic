@@ -1,6 +1,6 @@
 # Lexic - Word Guessing Game
 
-A word-guessing game built with modern web technologies. Features multilingual support, customizable keyboard layouts, and an elegant user interface.
+Wordle Clone. Features multilingual support, customizable keyboard layouts, and an elegant user interface.
 
 🎮 [Try Live Demo](https://lexic-kappa.vercel.app)
 
