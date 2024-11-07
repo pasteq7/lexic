@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   const validation = validateGuess(guess, answer.length, language);
   
   if (validation.isValid) {
-    const letterStates = getLetterStates(guess, answer, language);
+    const letterStates = getLetterStates(guess, answer);
     const isCorrect = guess.toLowerCase() === answer.toLowerCase();
     const isGameOver = isCorrect || guessCount >= 5; // 6th guess (0-based index)
     
