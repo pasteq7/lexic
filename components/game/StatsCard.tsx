@@ -1,5 +1,4 @@
 import { GameStats, GuessResult } from '@/lib/words';
-import { Stats } from '@/components/ui/stats-ui';
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { t } from '@/lib/translations';
@@ -19,6 +18,15 @@ const calculateWinPercentage = (stats: GameStats) => {
     ? Math.round((stats.gamesWon / stats.gamesPlayed) * 100)
     : 0;
 };
+
+function Stats({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="text-center">
+      <div className="text-2xl font-bold text-primary">{value}</div>
+      <div className="text-sm text-primary/50">{label}</div>
+    </div>
+  );
+}
 
 export function StatsCard({ 
   stats, 
