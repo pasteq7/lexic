@@ -16,7 +16,6 @@ interface GameBoardProps {
   keyStates: Record<string, KeyState>;
   onKeyPress: (key: string) => void;
   onNewGame: () => void;
-
   keyboardLayout: KeyboardLayout;
   revealedAnswer?: string | null;
   language: Language;
