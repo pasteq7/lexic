@@ -1,5 +1,7 @@
 # Lexic - Word Guessing Game
 
+![Lexic Game Preview](./lexic.png)
+
 Wordle Clone. Features multilingual support, customizable keyboard layouts, and an elegant user interface.
 
 🎮 [Try Live Demo](https://lexic-kappa.vercel.app)
