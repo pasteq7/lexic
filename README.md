@@ -1,6 +1,6 @@
 # Lexic - Modern Word Guessing Game
 
-A sophisticated implementation of a word-guessing game built with modern web technologies. Features multilingual support, customizable keyboard layouts, and an elegant user interface.
+A word-guessing game built with modern web technologies. Features multilingual support, customizable keyboard layouts, and an elegant user interface.
 
 🎮 [Try Live Demo](https://lexic-kappa.vercel.app)
 
