@@ -3,7 +3,7 @@ import { Keyboard } from './Keyboard';
 import { StatsCard } from './StatsCard';
 import { GuessResult, type GameStats } from '@/lib/words';
 import { type KeyState, KeyboardLayout } from '@/lib/utils';
-import { Language } from '@/lib/translations';
+import { type Language } from '@/lib/translations';
 
 interface GameBoardProps {
   guesses: GuessResult[];
