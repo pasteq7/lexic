@@ -177,7 +177,7 @@ export function Game() {
         )}
       </AnimatePresence>
 
-      <div className="flex flex-col h-screen relative z-20 mt-8">
+      <div className="flex flex-col min-h-screen relative z-20 mt-8">
         {isPlaying && !showMenu && (
           <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10">
             <Button
@@ -192,7 +192,7 @@ export function Game() {
         )}
         
         {isPlaying && wordLength > 0 && (
-          <Card className="bg-transparent backdrop-blur-sm shadow-none border-none flex-1 flex items-center justify-center">
+          <Card className="bg-transparent backdrop-blur-sm shadow-none border-none flex-1 flex items-center justify-center mx-auto max-w-2xl px-4">
             <GameBoard
               guesses={guesses}
               currentGuess={currentGuess}
