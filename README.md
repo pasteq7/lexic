@@ -1,4 +1,4 @@
-# Lexic - Modern Word Guessing Game
+# Lexic - Word Guessing Game
 
 A word-guessing game built with modern web technologies. Features multilingual support, customizable keyboard layouts, and an elegant user interface.
 
