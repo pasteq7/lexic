@@ -50,7 +50,7 @@ export function StatsCard({
           {isWon ? t('youWon', language) : t('gameOver', language)}
         </h2>
         {gameOver && !isWon && revealedAnswer && (
-          <p className="text-lg text-muted-foreground">
+          <p className="text-lg text-primary">
             {t('answer', language, { word: revealedAnswer })}
             <button
               onClick={handleSearch}
