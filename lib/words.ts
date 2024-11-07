@@ -6,7 +6,7 @@ const englishWordsArray: string[] = englishWords as string[];
 const frenchWordsArray: string[] = frenchWords as string[];
 
 export const MIN_WORD_LENGTH = 4;
-export const MAX_WORD_LENGTH = 8;
+export const MAX_WORD_LENGTH = 9;
 export const TRIES = 6;
 
 function removeAccents(str: string): string {
