@@ -177,39 +177,43 @@ export function Game() {
         )}
       </AnimatePresence>
 
-      {isPlaying && !showMenu && (
-        <Button
-          variant="outline"
-          onClick={handleHome}
-          className="fixed top-8 left-1/2 -translate-x-1/2 z-10 mb-6"
-        >
-          <Home className="mr-2 h-4 w-4" />
-          {t('home', language)}
-        </Button>
-      )}
-      
-      {isPlaying && wordLength > 0 && (
-        <Card className="bg-transparent backdrop-blur-sm shadow-none border-none flex-1 flex items-center justify-center">
-          <GameBoard
-            guesses={guesses}
-            currentGuess={currentGuess}
-            wordLength={wordLength}
-            shake={shake}
-            showStats={showStats}
-            stats={stats}
-            gameOver={gameOver}
-            keyStates={keyStates}
-            onKeyPress={handleKeyPress}
-            onNewGame={() => {
-              setShowStats(false);
-              newGame();
-            }}
-            keyboardLayout={keyboardLayout}
-            revealedAnswer={revealedAnswer}
-            language={language}
-          />
-        </Card>
-      )}
+      <div className="flex flex-col h-screen relative z-20 mt-8">
+        {isPlaying && !showMenu && (
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10">
+            <Button
+              variant="outline"
+              onClick={handleHome}
+              className="mb-6"
+            >
+              <Home className="mr-2 h-4 w-4" />
+              {t('home', language)}
+            </Button>
+          </div>
+        )}
+        
+        {isPlaying && wordLength > 0 && (
+          <Card className="bg-transparent backdrop-blur-sm shadow-none border-none flex-1 flex items-center justify-center">
+            <GameBoard
+              guesses={guesses}
+              currentGuess={currentGuess}
+              wordLength={wordLength}
+              shake={shake}
+              showStats={showStats}
+              stats={stats}
+              gameOver={gameOver}
+              keyStates={keyStates}
+              onKeyPress={handleKeyPress}
+              onNewGame={() => {
+                setShowStats(false);
+                newGame();
+              }}
+              keyboardLayout={keyboardLayout}
+              revealedAnswer={revealedAnswer}
+              language={language}
+            />
+          </Card>
+        )}
+      </div>
     </>
   );
 }
