@@ -1,8 +1,9 @@
 import { Board } from './Board';
 import { Keyboard } from './Keyboard';
 import { StatsCard } from './StatsCard';
-import { GuessResult, Language, type GameStats } from '@/lib/words';
+import { GuessResult, type GameStats } from '@/lib/words';
 import { type KeyState, KeyboardLayout } from '@/lib/utils';
+import { Language } from '@/lib/translations';
 
 interface GameBoardProps {
   guesses: GuessResult[];
