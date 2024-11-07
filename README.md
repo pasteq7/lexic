@@ -22,7 +22,7 @@ A sophisticated implementation of a word-guessing game built with modern web tec
 
 ## 🚀 Getting Started
 
-1. **Clone and Install:**
+ **Clone and Install:**
 ```bash
 git clone https://github.com/pasteq7/lexic.git
 cd lexic

@@ -4,9 +4,9 @@ import { useState, useMemo } from 'react';
 import {  AnimatePresence } from 'framer-motion';
 import { MainMenu } from '@/components/layout/MainMenu';
 import { GameBoard } from '@/components/game/GameBoard';
-import { useGameState } from '@/lib/hooks/useGameState';
+import { useGameState } from '@/hooks/useGameState';
 import { useToast } from '@/hooks/use-toast';
-import { useKeyboardControls } from '@/lib/hooks/useKeyboardControls';
+import { useKeyboardControls } from '@/hooks/useKeyboardControls';
 import { 
   TRIES, 
   createInitialStats, 
@@ -119,29 +119,6 @@ export function Game() {
     saveLanguagePreference(newLang);
   };
 
-  const shareResults = async () => {
-    try {
-      const response = await fetch('/api/share', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ guesses })
-      });
-      const { text } = await response.json();
-      
-      navigator.clipboard.writeText(text);
-      toast({
-        title: "Success",
-        description: 'Results copied to clipboard!',
-        duration: 2000
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: 'Failed to share results',
-        duration: 2000
-      });
-    }
-  };
 
   const handleStartGame = async () => {
     try {
@@ -230,7 +207,6 @@ export function Game() {
                 setShowStats(false);
                 newGame();
               }}
-              onShare={shareResults}
               keyboardLayout={keyboardLayout}
               revealedAnswer={revealedAnswer}
             />
