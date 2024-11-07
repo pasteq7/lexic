@@ -174,15 +174,15 @@ export function Game() {
             onKeyboardLayoutChange={handleKeyboardLayoutChange}
           />
         )}
+      </AnimatePresence>
 
+      <div className="flex flex-col h-screen relative z-20 mt-8">
         {isPlaying && !showMenu && (
-          <div className="w-full max-w-lg mx-auto px-4 relative z-20">
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10">
             <HomeButton onClick={handleHome} />
           </div>
         )}
-      </AnimatePresence>
-
-      <div className="flex flex-col h-screen relative z-20">
+        
         {isPlaying && wordLength > 0 && (
           <Card className="bg-transparent backdrop-blur-sm shadow-none border-none flex-1 flex items-center justify-center">
             <GameBoard

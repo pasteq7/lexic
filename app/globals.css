@@ -101,8 +101,8 @@
   .ambient-background .blob {
     content: '';
     @apply absolute rounded-full opacity-30 mix-blend-soft-light filter blur-[80px];
-    width: 600px;
-    height: 600px;
+    width: 800px;
+    height: 800px;
     animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     animation-iteration-count: infinite;
     will-change: transform;

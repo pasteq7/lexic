@@ -35,7 +35,7 @@ export function GameBoard({
   revealedAnswer,
 }: GameBoardProps) {
   return (
-    <div className="relative flex justify-center w-full">
+    <div className="relative flex justify-center w-full mt-8">
       <div className="w-[480px] flex flex-col items-center">
         <Board
           guesses={guesses}

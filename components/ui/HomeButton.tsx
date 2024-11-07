@@ -10,7 +10,7 @@ interface HomeButtonProps {
 export function HomeButton({ onClick }: HomeButtonProps) {
   return (
     <Button
-      variant="default"
+      variant="outline"
       onClick={onClick}
       className="mb-6"
     >
