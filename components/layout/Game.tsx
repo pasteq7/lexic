@@ -22,8 +22,10 @@ import {
   KeyboardLayout,
   saveGameState,
 } from '@/lib/utils';
-import { HomeButton } from '@/components/ui/HomeButton';
+import { Button } from "@/components/ui/button"
+import { Home } from 'lucide-react';
 import { Card } from '../ui/card';
+import { t, TranslationKey } from '@/lib/translations';
 
 export function Game() {
   const [showStats, setShowStats] = useState(false);
@@ -64,7 +66,7 @@ export function Game() {
     if (currentGuess.length !== wordLength) {
       toast({
         title: "Error",
-        description: `Word must be ${wordLength} letters`,
+        description: t('wordLength', language, { length: wordLength }),
         duration: 2000
       });
       setShake(true);
@@ -76,8 +78,8 @@ export function Game() {
     
     if (!result.isValid) {
       toast({
-        title: "Error",
-        description: result.message || 'Invalid word',
+        title: t('error', language),
+        description: result.message ? t(result.message as TranslationKey, language) : t('invalidWord', language),
         duration: 2000
       });
       setShake(true);
@@ -179,7 +181,14 @@ export function Game() {
       <div className="flex flex-col h-screen relative z-20 mt-8">
         {isPlaying && !showMenu && (
           <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10">
-            <HomeButton onClick={handleHome} />
+            <Button
+              variant="outline"
+              onClick={handleHome}
+              className="mb-6"
+            >
+              <Home className="mr-2 h-4 w-4" />
+              {t('home', language)}
+            </Button>
           </div>
         )}
         
@@ -201,6 +210,7 @@ export function Game() {
               }}
               keyboardLayout={keyboardLayout}
               revealedAnswer={revealedAnswer}
+              language={language}
             />
           </Card>
         )}

@@ -1,7 +1,7 @@
 import { Board } from './Board';
 import { Keyboard } from './Keyboard';
 import { StatsCard } from './StatsCard';
-import { GuessResult, type GameStats } from '@/lib/words';
+import { GuessResult, Language, type GameStats } from '@/lib/words';
 import { type KeyState, KeyboardLayout } from '@/lib/utils';
 
 interface GameBoardProps {
@@ -18,6 +18,7 @@ interface GameBoardProps {
 
   keyboardLayout: KeyboardLayout;
   revealedAnswer?: string | null;
+  language: Language;
 }
 
 export function GameBoard({
@@ -33,6 +34,7 @@ export function GameBoard({
   onNewGame,
   keyboardLayout,
   revealedAnswer,
+  language
 }: GameBoardProps) {
   return (
     <div className="relative flex justify-center w-full mt-8">
@@ -59,6 +61,7 @@ export function GameBoard({
           guesses={guesses}
           onNewGame={onNewGame}
           revealedAnswer={revealedAnswer}
+          language={language}
         />
       )}
     </div>

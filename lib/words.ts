@@ -1,5 +1,6 @@
 import englishWords from 'an-array-of-english-words';
 import frenchWords from 'an-array-of-french-words';
+import { TranslationKey } from './translations';
 
 // Add type definitions for the imported arrays
 const englishWordsArray: string[] = englishWords as string[];
@@ -165,20 +166,20 @@ export function validateGuess(
   word: string, 
   expectedLength: number, 
   language: Language
-): { isValid: boolean; message?: string } {
+): { isValid: boolean; message?: TranslationKey } {
   const normalizedWord = word.toLowerCase();
 
   if (normalizedWord.length !== expectedLength) {
     return { 
       isValid: false, 
-      message: `Word must be ${expectedLength} letters` 
+      message: 'wordLength'
     };
   }
   
   if (!/^[a-zÀ-ÿ]+$/i.test(normalizedWord)) {
     return { 
       isValid: false, 
-      message: 'Invalid characters' 
+      message: 'invalidCharacters'
     };
   }
   
@@ -188,7 +189,7 @@ export function validateGuess(
   )) {
     return { 
       isValid: false, 
-      message: 'Not in word list' 
+      message: 'notInWordList'
     };
   }
   

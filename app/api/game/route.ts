@@ -22,12 +22,12 @@ export async function POST(request: Request) {
       });
     }
     
-    return NextResponse.json({ success: false, error: 'Invalid action' });
+    return NextResponse.json({ success: false, error: 'invalidAction' });
   } catch (error) {
     console.error('API Route error:', error);
     return NextResponse.json({ 
       success: false, 
-      error: 'Failed to process request' 
+      error: 'failedToStart' 
     }, { status: 500 });
   }
 } 

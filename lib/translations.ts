@@ -10,7 +10,6 @@ export type TranslationKey =
   | 'confirmClear'
   | 'cancelClear'
   | 'gameRules'
-  | 'shareResults'
   | 'newGame'
   | 'statistics'
   | 'configureKeyboard'
@@ -19,7 +18,17 @@ export type TranslationKey =
   | 'notInList'
   | 'gameOver'
   | 'youWon'
-  | 'answer';
+  | 'answer'
+  | 'winPercentage'
+  | 'streak'
+  | 'maxStreak'
+  | 'searchDefinition'
+  | 'error'
+  | 'noActiveGame'
+  | 'invalidCharacters'
+  | 'notInWordList'
+  | 'failedToStart'
+  | 'home';
 
 export const translations: Record<Language, Record<TranslationKey, string>> = {
   en: {
@@ -39,7 +48,6 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
       '🟨 Yellow: Letter is in the word but wrong position',
       '⬜ Empty: Letter is not in the word'
     ].join('\n'),
-    shareResults: 'Share Results',
     newGame: 'New Game',
     statistics: 'Statistics',
     configureKeyboard: 'Configure your keyboard layout and manage game data.',
@@ -48,7 +56,17 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     notInList: 'Not in word list',
     gameOver: 'Game Over',
     youWon: 'You won!',
-    answer: 'The word was: {word}'
+    answer: 'The word was: {word}',
+    winPercentage: 'Win %',
+    streak: 'Current Streak',
+    maxStreak: 'Max Streak',
+    searchDefinition: 'Search definition',
+    error: 'Error',
+    noActiveGame: 'No active game',
+    invalidCharacters: 'Invalid characters',
+    notInWordList: 'Not in word list',
+    failedToStart: 'Failed to start game',
+    home: 'Home'
   },
   fr: {
     startGame: 'Commencer',
@@ -67,7 +85,6 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
       '🟨 Jaune : Lettre dans le mot mais mal placée',
       '⬜ Vide : Lettre absente du mot'
     ].join('\n'),
-    shareResults: 'Partager',
     newGame: 'Nouvelle Partie',
     statistics: 'Statistiques',
     configureKeyboard: 'Configurez votre clavier et gérez les données du jeu.',
@@ -76,7 +93,17 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     notInList: 'Mot non trouvé',
     gameOver: 'Partie Terminée',
     youWon: 'Vous avez gagné !',
-    answer: 'Le mot était : {word}'
+    answer: 'Le mot était : {word}',
+    winPercentage: 'Victoires %',
+    streak: 'Série Actuelle',
+    maxStreak: 'Série Max',
+    searchDefinition: 'Chercher la définition',
+    error: 'Erreur',
+    noActiveGame: 'Aucune partie active',
+    invalidCharacters: 'Caractères invalides',
+    notInWordList: 'Mot non trouvé',
+    failedToStart: 'Échec du démarrage',
+    home: 'Accueil'
   }
 };
 
@@ -89,3 +116,5 @@ export function t(key: TranslationKey, lang: Language, params?: Record<string, s
     text
   );
 }
+export type { Language };
+
