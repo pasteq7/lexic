@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Language, LetterState, TRIES,  getLanguagePreference, saveLanguagePreference } from '@/lib/words';
+import { LetterState, TRIES,  getLanguagePreference, saveLanguagePreference } from '@/lib/words';
 import { GuessResult } from '@/lib/words';
+import { type Language } from '@/lib/translations';
 
 interface NewGameResponse {
   success: boolean;

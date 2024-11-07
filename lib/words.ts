@@ -1,7 +1,6 @@
 import englishWords from 'an-array-of-english-words';
 import frenchWords from 'an-array-of-french-words';
-import { Language, TranslationKey } from './translations';
-
+import { type Language, TranslationKey } from './translations';
 // Add type definitions for the imported arrays
 const englishWordsArray: string[] = englishWords as string[];
 const frenchWordsArray: string[] = frenchWords as string[];
@@ -250,3 +249,4 @@ export interface GuessResult {
   letterStates: LetterState[];
   isCorrect: boolean;
 }
+
