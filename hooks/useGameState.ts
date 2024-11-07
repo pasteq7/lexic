@@ -25,6 +25,7 @@ export function useGameState(initialLanguage: Language) {
   const [gameOver, setGameOver] = useState(false);
   const [letterStates, setLetterStates] = useState<Record<number, LetterState[]>>({});
   const [revealedAnswer, setRevealedAnswer] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (initialLanguage !== language) {
@@ -73,7 +74,15 @@ export function useGameState(initialLanguage: Language) {
   };
 
   const submitGuess = async (guess: string): Promise<GuessResponse> => {
+    if (isSubmitting) {
+      return {
+        isValid: false,
+        message: 'submitInProgress'
+      };
+    }
+
     try {
+      setIsSubmitting(true);
       if (guess.length !== wordLength) {
         return {
           isValid: false,
@@ -130,6 +139,8 @@ export function useGameState(initialLanguage: Language) {
         isValid: false,
         message: 'Error validating guess',
       };
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -147,5 +158,6 @@ export function useGameState(initialLanguage: Language) {
     language,
     changeLanguage,
     revealedAnswer,
+    isSubmitting,
   };
 } 

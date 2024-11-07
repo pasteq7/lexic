@@ -9,6 +9,7 @@ interface UseKeyboardControlsProps {
   onSubmit: () => void;
   onUpdateGuess: (guess: string) => void;
   keyboardLayout: KeyboardLayout;
+  isSubmitting: boolean;
 }
 
 export function useKeyboardControls({
@@ -18,10 +19,11 @@ export function useKeyboardControls({
   wordLength,
   onSubmit,
   onUpdateGuess,
-  keyboardLayout
+  keyboardLayout,
+  isSubmitting
 }: UseKeyboardControlsProps) {
   const handleKeyPress = useCallback((key: string) => {
-    if (gameOver) return;
+    if (!isPlaying || gameOver || isSubmitting) return;
 
     const normalizedKey = key.toLowerCase();
 
@@ -39,7 +41,7 @@ export function useKeyboardControls({
     if (keyboardLayout === 'azerty') {
       // Handle AZERTY-specific mappings if needed
     }
-  }, [gameOver, currentGuess, wordLength, onSubmit, onUpdateGuess, keyboardLayout]);
+  }, [gameOver, currentGuess, wordLength, onSubmit, onUpdateGuess, keyboardLayout, isSubmitting]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

@@ -48,6 +48,7 @@ export function Game() {
     newGame,
     submitGuess: submitGameGuess,
     revealedAnswer,
+    isSubmitting,
   } = useGameState(language);
 
   const { toast } = useToast();
@@ -62,6 +63,10 @@ export function Game() {
   }, [guesses]);
 
   const handleSubmitGuess = async () => {
+    if (isSubmitting) {
+      return;
+    }
+
     if (currentGuess.length !== wordLength) {
       toast({
         title: "Error",
@@ -100,7 +105,8 @@ export function Game() {
     wordLength,
     onSubmit: handleSubmitGuess,
     onUpdateGuess: setCurrentGuess,
-    keyboardLayout
+    keyboardLayout,
+    isSubmitting
   });
 
   const handleGameEnd = (won: boolean, guessCount: number) => {
