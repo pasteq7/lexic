@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     }
     
     return NextResponse.json({ success: false, error: 'invalidAction' });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json({ 
       success: false, 
       error: 'failedToStart' 
