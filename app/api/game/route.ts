@@ -10,7 +10,10 @@ export async function POST(request: Request) {
       const word = getRandomWord(language);
       const length = word.length;
       
-      console.log('New game word:', word, 'language:', language);
+      // Only log in development
+      if (process.env.NODE_ENV === 'development') {
+        console.info('New game word:', word, 'language:', language);
+      }
       
       // Store plain word in httpOnly cookie (it's secure enough)
       cookies().set('gameWord', word, {
@@ -26,7 +29,6 @@ export async function POST(request: Request) {
     
     return NextResponse.json({ success: false, error: 'invalidAction' });
   } catch (error) {
-    console.error('API Route error:', error);
     return NextResponse.json({ 
       success: false, 
       error: 'failedToStart' 
