@@ -42,9 +42,9 @@ const config: Config = {
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',
-  			correct: 'hsl(var(--correct))',
-  			present: 'hsl(var(--present))',
-  			absent: 'hsl(var(--absent))',
+  			correct: 'rgb(var(--correct) / <alpha-value>)',
+  			present: 'rgb(var(--present) / <alpha-value>)',
+  			absent: 'rgb(var(--absent) / <alpha-value>)',
   		},
   	}
   },

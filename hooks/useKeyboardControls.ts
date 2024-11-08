@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from 'react';
-import { KeyboardLayout } from '../lib/utils';
+import { KeyboardLayout } from '@/lib/types/keyboard';
 
 interface UseKeyboardControlsProps {
   isPlaying: boolean;

@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import { Keyboard, Trash2, AlertCircle } from 'lucide-react';
-import { KeyboardLayout } from '@/lib/utils';
+import { KeyboardLayout } from '@/lib/types/keyboard';
 import { useState } from 'react';
 import { Button } from "@/components/ui/button"
 import {
@@ -12,7 +12,10 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog"
-import { Language, t } from '@/lib/translations';
+import { Language } from '@/lib/types/i18n';
+import { t } from '@/lib/i18n/translations';
+import { clearAllGameData } from '@/lib/utils/storage';
+import { useToast } from '@/hooks/use-toast';
 
 interface SettingsDialogProps {
   isOpen: boolean;
@@ -32,14 +35,31 @@ export function SettingsDialog({
   language
 }: SettingsDialogProps) {
   const [showConfirm, setShowConfirm] = useState(false);
+  const { toast } = useToast();
 
   const handleClearClick = () => {
     if (!showConfirm) {
       setShowConfirm(true);
       return;
     }
-    onClearStorage();
-    setShowConfirm(false);
+    
+    try {
+      clearAllGameData();
+      onClearStorage();
+      setShowConfirm(false);
+      
+      toast({
+        title: t('clearData', language),
+        description: t('dataCleared', language),
+        variant: "default"
+      });
+    } catch (error) {
+      toast({
+        title: t('error', language),
+        description: t('failedToClear', language),
+        variant: "destructive"
+      });
+    }
   };
 
   const handleCancelClear = () => {
@@ -53,7 +73,7 @@ export function SettingsDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Keyboard className="w-6 h-6 text-primary" />
-            Settings
+            {t('settings', language)}
           </DialogTitle>
           <DialogDescription>
             {t('configureKeyboard', language)}
@@ -62,9 +82,9 @@ export function SettingsDialog({
 
         <div className="space-y-6">
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium">Keyboard Layout</label>
+            <label className="text-sm font-medium">{t('keyboardLayout', language)}</label>
             <p className="text-sm text-primary/50">
-              Choose your preferred keyboard layout for typing.
+              {t('chooseLayout', language)}
             </p>
             <div className="flex gap-2">
               <Button
@@ -87,14 +107,14 @@ export function SettingsDialog({
           </div>
 
           <div className="relative h-10">
-            <AnimatePresence initial={false} mode="wait">
+            <AnimatePresence mode="wait">
               {showConfirm ? (
                 <motion.div
                   key="confirm"
-                  initial={{ opacity: 0, x: -300 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -300 }}
-                  transition={{ type: "spring", bounce: 0.2 }}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.15, ease: "easeOut" }}
                   className="absolute w-full flex gap-2"
                 >
                   <Button
@@ -103,23 +123,23 @@ export function SettingsDialog({
                     className="flex-1"
                   >
                     <AlertCircle className="w-4 h-4 mr-2" />
-                    Yes?
+                    {t('confirmDelete', language)}
                   </Button>
                   <Button
-                    onClick={handleCancelClear}
+                    onClick={() => setShowConfirm(false)}
                     variant="secondary"
                     className="flex-1"
                   >
-                    No
+                    {t('cancel', language)}
                   </Button>
                 </motion.div>
               ) : (
                 <motion.div
                   key="clear"
-                  initial={{ opacity: 0, x: 300 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 300 }}
-                  transition={{ type: "spring", bounce: 0.2 }}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.15, ease: "easeOut" }}
                   className="absolute w-full"
                 >
                   <Button
@@ -128,7 +148,7 @@ export function SettingsDialog({
                     className="w-full"
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
-                    Clear Game Data
+                    {t('clearGameData', language)}
                   </Button>
                 </motion.div>
               )}

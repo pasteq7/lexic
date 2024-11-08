@@ -1,34 +1,4 @@
-export type Language = 'en' | 'fr';
-
-export type TranslationKey = 
-  | 'startGame'
-  | 'settings'
-  | 'howToPlay'
-  | 'keyboardLayout'
-  | 'chooseLayout'
-  | 'clearData'
-  | 'confirmClear'
-  | 'cancelClear'
-  | 'gameRules'
-  | 'newGame'
-  | 'statistics'
-  | 'configureKeyboard'
-  | 'wordLength'
-  | 'invalidWord'
-  | 'notInList'
-  | 'gameOver'
-  | 'youWon'
-  | 'answer'
-  | 'winPercentage'
-  | 'streak'
-  | 'maxStreak'
-  | 'searchDefinition'
-  | 'error'
-  | 'noActiveGame'
-  | 'invalidCharacters'
-  | 'notInWordList'
-  | 'failedToStart'
-  | 'home';
+import { Language, TranslationKey } from '@/lib/types/i18n';
 
 export const translations: Record<Language, Record<TranslationKey, string>> = {
   en: {
@@ -49,7 +19,7 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
       '⬜ Empty: Letter is not in the word'
     ].join('\n'),
     newGame: 'New Game',
-    statistics: 'Statistics',
+    gamePlayed: 'Game Played',
     configureKeyboard: 'Configure your keyboard layout and manage game data.',
     wordLength: 'Word must be {length} letters',
     invalidWord: 'Invalid word',
@@ -66,7 +36,22 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     invalidCharacters: 'Invalid characters',
     notInWordList: 'Not in word list',
     failedToStart: 'Failed to start game',
-    home: 'Home'
+    home: 'Home',
+    viewStats: 'View Statistics',
+    gamesPlayed: 'Played',
+    winRate: 'Win Rate',
+    currentStreak: 'Current Streak',
+    bestStreak: 'Best Streak',
+    dataCleared: 'Game data cleared successfully',
+    failedToClear: 'Failed to clear game data',
+    statistics: 'Statistics',
+    avgGuesses: 'Avg. Guesses',
+    gamesWon: 'Games Won',
+    guessDistribution: 'Guess Distribution (10 last games)',
+    lastPlayed: 'Last Played',
+    confirmDelete: 'Are you sure? ',  
+    cancel: 'Cancel',
+    clearGameData: 'Clear Game Data',
   },
   fr: {
     startGame: 'Commencer',
@@ -86,7 +71,7 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
       '⬜ Vide : Lettre absente du mot'
     ].join('\n'),
     newGame: 'Nouvelle Partie',
-    statistics: 'Statistiques',
+    gamePlayed: 'Parties Jouées',
     configureKeyboard: 'Configurez votre clavier et gérez les données du jeu.',
     wordLength: 'Le mot doit faire {length} lettres',
     invalidWord: 'Mot invalide',
@@ -103,7 +88,22 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     invalidCharacters: 'Caractères invalides',
     notInWordList: 'Mot non trouvé',
     failedToStart: 'Échec du démarrage',
-    home: 'Accueil'
+    home: 'Accueil',
+    viewStats: 'Voir les Statistiques',
+    gamesPlayed: 'Parties',
+    winRate: 'Taux de Réussite',
+    currentStreak: 'Série Actuelle',
+    bestStreak: 'Meilleure Série',
+    dataCleared: 'Données du jeu effacées avec succès',
+    failedToClear: 'Échec de l\'effacement des données',
+    statistics: 'Statistiques',
+    avgGuesses: 'Moy. essais',
+    gamesWon: 'Parties Gagnées',
+    guessDistribution: 'Distribution des essais (10 dernières parties)',
+    lastPlayed: 'Dernière partie',
+    confirmDelete: 'Êtes-vous sûr ?',
+    cancel: 'Annuler',
+    clearGameData: 'Effacer les Données du Jeu',
   }
 };
 
@@ -115,5 +115,20 @@ export function t(key: TranslationKey, lang: Language, params?: Record<string, s
     (str, [key, value]) => str.replace(`{${key}}`, value.toString()),
     text
   );
+}
+
+// Type for translation parameters
+export type TranslationParams = Record<string, string | number>;
+
+// Add validation for translation keys
+export function validateTranslationKey(key: string): key is TranslationKey {
+  return key in translations.en;
+}
+
+// Add missing translation detection
+export function getMissingTranslations(): TranslationKey[] {
+  const enKeys = Object.keys(translations.en);
+  const frKeys = Object.keys(translations.fr);
+  return enKeys.filter(key => !frKeys.includes(key)) as TranslationKey[];
 }
 

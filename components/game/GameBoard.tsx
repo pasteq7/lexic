@@ -1,9 +1,9 @@
 import { Board } from './Board';
-import { Keyboard } from './Keyboard';
+import Keyboard from './Keyboard';
 import { StatsCard } from './StatsCard';
-import { GuessResult, type GameStats } from '@/lib/words';
-import { type KeyState, KeyboardLayout } from '@/lib/utils';
-import { type Language } from '@/lib/translations';
+import { GuessResult, type GameStats } from '@/lib/types/game';
+import { type KeyState, KeyboardLayout } from '@/lib/types/keyboard';
+import { type Language } from '@/lib/types/i18n';
 
 interface GameBoardProps {
   guesses: GuessResult[];
@@ -17,8 +17,9 @@ interface GameBoardProps {
   onKeyPress: (key: string) => void;
   onNewGame: () => void;
   keyboardLayout: KeyboardLayout;
-  revealedAnswer?: string | null;
+  revealedAnswer: string | null;
   language: Language;
+  isSubmitting: boolean;
 }
 
 export function GameBoard({
@@ -34,7 +35,8 @@ export function GameBoard({
   onNewGame,
   keyboardLayout,
   revealedAnswer,
-  language
+  language,
+  isSubmitting
 }: GameBoardProps) {
   return (
     <div className="relative flex justify-center w-full mt-8">
@@ -47,7 +49,7 @@ export function GameBoard({
         />
         <div className="w-full pb-4">
           <Keyboard
-            onKeyPress={onKeyPress}
+            onKey={onKeyPress}
             keyStates={keyStates}
             keyboardLayout={keyboardLayout}
           />
@@ -62,6 +64,7 @@ export function GameBoard({
           onNewGame={onNewGame}
           revealedAnswer={revealedAnswer}
           language={language}
+          className="absolute top-0 left-full ml-4"
         />
       )}
     </div>

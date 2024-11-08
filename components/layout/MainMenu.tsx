@@ -1,16 +1,21 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { KeyboardLayout, MENU_ANIMATIONS } from '@/lib/utils';
-import { Language } from '@/lib/translations';
-import { Book, Settings } from 'lucide-react';
+import { KeyboardLayout } from '@/lib/types/keyboard';
+import { Language } from '@/lib/types/i18n';
+import { Book, Settings, BarChart } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { LanguageFlag } from '@/components/ui/LanguageFlag';
 import { Button } from "@/components/ui/button";
 import { SettingsDialog } from '@/components/ui/SettingsDialog';
 import { Title } from '@/components/ui/Title';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { t } from '@/lib/translations';
+import { t } from '@/lib/i18n/translations';
+import { useGameStats } from '@/hooks/stats/useGameStats';
+import { MENU_ANIMATIONS } from '@/lib/utils/animations';
+import { saveLanguagePreference, loadLanguagePreference } from '@/lib/utils/storage';
+import { DetailedStats } from '@/components/stats/DetailedStats';
+import { statsManager } from '@/lib/stats/statsManager';
 
 interface MainMenuProps {
   selectedLanguage: Language;
@@ -31,15 +36,18 @@ export function MainMenu({
   const [language, setLanguage] = useState<Language>(initialLanguage);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [showStats, setShowStats] = useState(false);
+  const { resetStats, stats } = useGameStats();
 
   useEffect(() => {
-    if (initialLanguage !== language) {
-      setLanguage(initialLanguage);
+    const savedLanguage = loadLanguagePreference();
+    if (savedLanguage !== language) {
+      setLanguage(savedLanguage);
+      onLanguageChange(savedLanguage);
     }
     setMounted(true);
-  }, [initialLanguage, language]);
+  }, []);
 
-  // Skip rendering language-dependent content until after hydration
   if (!mounted) {
     return (
       <motion.div
@@ -73,6 +81,7 @@ export function MainMenu({
     const newLang = language === 'en' ? 'fr' : 'en';
     setLanguage(newLang);
     onLanguageChange(newLang);
+    saveLanguagePreference(newLang);
   };
 
   const handleStartGame = () => {
@@ -82,7 +91,7 @@ export function MainMenu({
 
   const handleClearStorage = () => {
     if (typeof window !== 'undefined') {
-      localStorage.clear();
+      statsManager.clearAllGameData();
       setIsSettingsOpen(false);
       window.location.reload();
     }
@@ -113,20 +122,26 @@ export function MainMenu({
 
         <div className="flex justify-center gap-3 sm:gap-4">
           {mounted && (
-            <motion.div {...MENU_ANIMATIONS.LANGUAGE_BUTTON}>
+            <motion.div {...MENU_ANIMATIONS.BUTTON_EXTRA}>
               <Button
                 variant="default"
                 size="icon"
-                className="h-14 w-14 sm:h-16 sm:w-16 p-2"
+                className="h-14 w-14 sm:h-16 sm:w-16 relative group"
                 onClick={toggleLanguage}
                 aria-label={`Switch to ${language === 'en' ? 'French' : 'English'}`}
               >
-                <LanguageFlag language={language} />
+                <div className="absolute inset-0 flex items-center justify-center transition-transform group-hover:scale-110">
+                  <LanguageFlag 
+                    language={language} 
+                    size={28}
+                    className="transition-transform duration-200" 
+                  />
+                </div>
               </Button>
             </motion.div>
           )}
 
-          <motion.div {...MENU_ANIMATIONS.LANGUAGE_BUTTON}>
+          <motion.div {...MENU_ANIMATIONS.BUTTON_EXTRA}>
             <Button
               variant="default"
               size="icon"
@@ -137,7 +152,19 @@ export function MainMenu({
             </Button>
           </motion.div>
 
-          <motion.div {...MENU_ANIMATIONS.LANGUAGE_BUTTON}>
+          <motion.div {...MENU_ANIMATIONS.BUTTON_EXTRA}>
+            <Button
+              variant="default"
+              size="icon"
+              className="h-14 w-14 sm:h-16 sm:w-16 p-2"
+              onClick={() => setShowStats(true)}
+              aria-label={t('viewStats', language)}
+            >
+              <BarChart size={24} />
+            </Button>
+          </motion.div>
+
+          <motion.div {...MENU_ANIMATIONS.BUTTON_EXTRA}>
             <Button
               variant="default"
               size="icon"
@@ -147,6 +174,8 @@ export function MainMenu({
               <Settings size={24} />
             </Button>
           </motion.div>
+
+
         </div>
       </motion.div>
 
@@ -177,6 +206,17 @@ export function MainMenu({
         onKeyboardLayoutChange={onKeyboardLayoutChange}
         language={language}
       />
+
+      <Dialog open={showStats} onOpenChange={setShowStats}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-2xl mb-4">
+              {t('statistics', language)}
+            </DialogTitle>
+          </DialogHeader>
+          <DetailedStats stats={stats} language={language} />
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 } 

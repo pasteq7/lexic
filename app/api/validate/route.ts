@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { validateGuess, getLetterStates } from '@/lib/words';
+import { validateGuess, getLetterStates, normalizeWord } from '@/lib/game/validation';
 import { cookies } from 'next/headers';
+import { TRIES } from '@/lib/game/constants';
 
 export async function POST(request: Request) {
   const { guess, language = 'en', guessCount } = await request.json();
@@ -23,13 +24,14 @@ export async function POST(request: Request) {
   }
   
   const letterStates = getLetterStates(guess, answer);
-  const isCorrect = guess.toLowerCase() === answer.toLowerCase();
-  const isGameOver = isCorrect || guessCount >= 5; // 6th guess (0-based index)
+  const isCorrect = normalizeWord(guess.toLowerCase()) === normalizeWord(answer.toLowerCase());
+  const isGameOver = isCorrect || guessCount >= TRIES - 1; 
   
   return NextResponse.json({
     isValid: true,
     letterStates,
     isCorrect,
-    answer: isGameOver ? answer : undefined // Only send answer if game is over
+    answer: isGameOver ? answer : undefined,
+    guessCount: guessCount + 1
   });
 } 

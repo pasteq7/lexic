@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
-import { getLetterStateClass, type LetterState } from '@/lib/words';
 import { cn } from '@/lib/utils';
+import { ANIMATIONS } from '@/lib/utils/animations';
+import { LetterState } from '@/lib/types/game';
 
 interface CellProps {
   letter: string;
@@ -9,6 +10,13 @@ interface CellProps {
   delay?: number;
   size?: 'normal' | 'large';
 }
+
+const cellStateStyles = {
+  correct: 'bg-correct text-foreground border-primary',
+  present: 'bg-present text-foreground border-primary',
+  absent: 'bg-transparent text-foreground border-primary',
+  empty: 'bg-transparent border-primary/30'
+} as const;
 
 export function Cell({ 
   letter, 
@@ -28,7 +36,7 @@ export function Cell({
     state === 'empty' && isActive && letter 
       ? 'border-primary shadow-sm' 
       : 'border-primary/30',
-    getLetterStateClass(state)
+    cellStateStyles[state]
   );
 
   return (
@@ -36,10 +44,10 @@ export function Cell({
       className={baseStyles}
       animate={{
         scale: letter ? 1 : 0.95,
-        rotateX: state !== 'empty' ? [0, 90, 0] : 0
+        rotateX: state !== 'empty' ? ANIMATIONS.FLIP.rotateX : 0
       }}
       transition={{
-        duration: 0.3,
+        duration: ANIMATIONS.FLIP.duration,
         delay: state !== 'empty' ? delay * 0.1 : 0,
         ease: "easeInOut"
       }}

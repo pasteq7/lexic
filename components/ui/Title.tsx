@@ -2,7 +2,8 @@
 
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { getLetterStateClass, type LetterState } from '@/lib/words';
+import { type LetterState } from '@/lib/types/game';
+import { getLetterStateClass } from '@/lib/game/words';
 
 interface TitleCellProps {
   letter: string;
@@ -31,7 +32,7 @@ function TitleCell({
     state === 'empty' && isActive && letter 
       ? 'border-primary shadow-sm' 
       : 'border-primary/30',
-    getLetterStateClass(state)
+    getLetterStateClass(state as LetterState)
   );
 
   return (
@@ -42,20 +43,19 @@ function TitleCell({
         scale: letter ? 1 : 0.95,
         opacity: 1,
         rotateX: state !== 'empty' ? [0, 90, 0] : 0,
-        y: [0, -3, 0],
-        transition: {
-          y: {
-            duration: 2.5,
-            repeat: Infinity,
-            repeatType: "reverse",
-            ease: "easeInOut",
-            delay: delay * 0.5
-          },
-          scale: {
-            duration: 0.5,
-            ease: [0.23, 1, 0.32, 1]
-          }
+      }}
+      whileInView={{
+        transform: "translateY(0px)",
+      }}
+      transition={{ 
+        scale: {
+          duration: 0.4,
+          ease: "backOut"
         }
+      }}
+      style={{
+        willChange: "transform",
+        animation: `bounce 1.8s infinite ${delay * 0.2}s ease-in-out`
       }}
     >
       {letter.toUpperCase()}
@@ -67,23 +67,36 @@ export function Title() {
   const letters = "LEXIC".split("");
   
   return (
-    <motion.div 
-      className="relative"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 1.5, ease: "easeOut" }}
-    >
-      <div className="flex justify-center items-center gap-1.5 sm:gap-2 md:gap-3">
-        {letters.map((letter, i) => (
-          <TitleCell
-            key={i}
-            letter={letter}
-            state="empty"
-            isActive={true}
-            delay={i}
-          />
-        ))}
-      </div>
-    </motion.div>
+    <>
+      <style jsx global>{`
+        @keyframes bounce {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-8px); }
+        }
+      `}</style>
+      
+      <motion.div 
+        className="relative"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ 
+          duration: 0.8, 
+          ease: "easeOut",
+          delay: 0.2 
+        }}
+      >
+        <div className="flex justify-center items-center gap-1.5 sm:gap-2 md:gap-3">
+          {letters.map((letter, i) => (
+            <TitleCell
+              key={i}
+              letter={letter}
+              state="empty"
+              isActive={true}
+              delay={i}
+            />
+          ))}
+        </div>
+      </motion.div>
+    </>
   );
 } 

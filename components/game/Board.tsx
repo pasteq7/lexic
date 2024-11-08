@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion';
-import {  TRIES, type LetterState, GuessResult } from '@/lib/words';
+import { type LetterState, type GuessResult } from '@/lib/types/game';
 import { Cell } from '@/components/game/Cell';
+import { ANIMATIONS } from '@/lib/utils/animations';
+import { TRIES } from '@/lib/game/constants';
 interface BoardProps {
   guesses: GuessResult[];
   currentGuess: string;
@@ -65,7 +67,7 @@ function Row({ word, states, wordLength, isActive = false, shake = false }: RowP
   return (
     <motion.div 
       className="flex" 
-      animate={shake ? { x: [-2, 2, -2, 2, 0] } : {}}
+      animate={shake ? ANIMATIONS.SHAKE : {}}
       transition={{ duration: 0.3, type: "spring", stiffness: 400 }}
     >
       {cells.map((letter, i) => (

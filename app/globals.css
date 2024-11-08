@@ -9,9 +9,9 @@
     --foreground: 0 0% 98%;
 
     /* Game Colors */
-    --correct: 142.1 70.6% 45.3%;  
-    --present: 45 96.5% 40%;     
-    --absent: 215 13.8% 34.1%;    
+    --correct: 34 197 94;  /* green-500 */
+    --present: 234 179 8;  /* yellow-500 */
+    --absent: 71 85 105;   /* slate-600 */
     
     /* UI Colors */
     --primary: 0 0% 98%;
@@ -24,8 +24,8 @@
     --accent: 195 35% 32%;
     --accent-foreground: 0 0% 98%;
     
-    --muted: 223 35% 28%;
-    --muted-foreground: 240 3.8% 46.1%;
+    --muted: 222 20% 28%;
+    --muted-foreground: 240 5.9% 70%;
 
     /* UI Elements */
     --card: 0 0% 100%;

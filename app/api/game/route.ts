@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getRandomWord } from '@/lib/words';
+import { getRandomWord } from '@/lib/game/words';
 import { cookies } from 'next/headers';
 
 export async function POST(request: Request) {
@@ -9,6 +9,8 @@ export async function POST(request: Request) {
     if (action === 'new') {
       const word = getRandomWord(language);
       const length = word.length;
+      
+      console.log('New game word:', word, 'language:', language);
       
       // Store plain word in httpOnly cookie (it's secure enough)
       cookies().set('gameWord', word, {
