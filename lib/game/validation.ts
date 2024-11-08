@@ -2,7 +2,7 @@ import { TranslationKey } from '@/lib/types/i18n';
 import { Language } from '@/lib/types/i18n';
 import { isValidWord } from '@/lib/game/words';
 import { LetterState } from '../types/game';
-import { MIN_WORD_LENGTH, MAX_WORD_LENGTH, TRIES } from './constants';
+import { MIN_WORD_LENGTH, MAX_WORD_LENGTH } from './constants';
 
 export interface ValidationResult {
   isValid: boolean;

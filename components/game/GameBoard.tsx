@@ -19,7 +19,6 @@ interface GameBoardProps {
   keyboardLayout: KeyboardLayout;
   revealedAnswer: string | null;
   language: Language;
-  isSubmitting: boolean;
 }
 
 export function GameBoard({
@@ -35,8 +34,7 @@ export function GameBoard({
   onNewGame,
   keyboardLayout,
   revealedAnswer,
-  language,
-  isSubmitting
+  language
 }: GameBoardProps) {
   return (
     <div className="relative flex justify-center w-full mt-8">

@@ -1,6 +1,6 @@
 import type { GameStats, GameResult, StatsError, StatsValidation } from '@/lib/types/game';
+import { MAX_RECENT_GAMES } from '@/lib/game/constants';
 
-const MAX_RECENT_GAMES = 10; // Keep only last 10 games for history
 
 const createInitialStats = (): GameStats => ({
   gamesPlayed: 0,

@@ -1,22 +1,22 @@
-import englishWords from 'an-array-of-english-words';
-const frenchWords: string[] = require('an-array-of-french-words');
 import { Language } from '@/lib/types/i18n';
 import { MIN_WORD_LENGTH, MAX_WORD_LENGTH } from './constants';
 import { LetterState } from '@/lib/types/game';
 
+var englishWords = require('an-array-of-english-words')
+var frenchWords = require('an-array-of-french-words')
 // Initialize word lists
 const VALID_WORDS: Record<Language, string[]> = {
-  en: englishWords.filter(word => 
+  en: englishWords.filter((word: string) => 
     word.length >= MIN_WORD_LENGTH && 
     word.length <= MAX_WORD_LENGTH &&
     /^[a-zÀ-ÿ]+$/i.test(word)
-  ).map(word => word.toLowerCase()),
+  ).map((word: string) => word.toLowerCase()),
   
-  fr: frenchWords.filter(word => 
+  fr: frenchWords.filter((word: string) => 
     word.length >= MIN_WORD_LENGTH && 
     word.length <= MAX_WORD_LENGTH &&
     /^[a-zÀ-ÿ]+$/i.test(word)
-  ).map(word => word.toLowerCase())
+  ).map((word: string) => word.toLowerCase())
 };
 
 // Pre-compute words by length for faster lookup

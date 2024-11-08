@@ -1,8 +1,6 @@
-import { GameStats } from '@/lib/types/game';
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { Language } from '@/lib/types/i18n';
-import { MAX_RECENT_GAMES } from '@/lib/game/constants';
 
 // Utility for combining Tailwind classes
 export function cn(...inputs: ClassValue[]) {
@@ -91,48 +89,4 @@ export function loadLanguagePreference(): Language {
   }
 }
 
-// Add data migration helper
-export function migrateGameData(): void {
-  if (typeof window === 'undefined') return;
-
-  try {
-    const oldStats = localStorage.getItem(STORAGE_KEYS.STATS);
-    if (oldStats) {
-      const parsed = JSON.parse(oldStats);
-      
-      // Migrate old format to new format if needed
-      if (Array.isArray(parsed.guessHistory)) {
-        const guessDistribution: Record<string, number> = {};
-        const recentGames = parsed.guessHistory
-          .slice(-MAX_RECENT_GAMES)
-          .map((game: { word: string; letterStates: any[]; isCorrect: boolean }) => ({
-            word: game.word,
-            guesses: game.letterStates?.length || 0,
-            won: game.isCorrect,
-            timestamp: parsed.lastPlayed
-          }));
-
-        // Calculate distribution from history
-        parsed.guessHistory.forEach((game: { letterStates: any[]; isCorrect: boolean }) => {
-          if (game.isCorrect) {
-            const guesses = game.letterStates?.length || 0;
-            guessDistribution[guesses] = (guessDistribution[guesses] || 0) + 1;
-          }
-        });
-
-        // Save migrated data
-        const migratedStats = {
-          ...parsed,
-          guessDistribution,
-          recentGames,
-          guessHistory: undefined // Remove old format
-        };
-
-        localStorage.setItem(STORAGE_KEYS.STATS, JSON.stringify(migratedStats));
-      }
-    }
-  } catch (error) {
-    console.error('Failed to migrate game data:', error);
-  }
-}
 

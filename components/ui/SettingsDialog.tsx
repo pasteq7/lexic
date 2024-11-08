@@ -62,11 +62,6 @@ export function SettingsDialog({
     }
   };
 
-  const handleCancelClear = () => {
-    setShowConfirm(false);
-  };
-
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">

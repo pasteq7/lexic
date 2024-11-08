@@ -37,7 +37,7 @@ export function MainMenu({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showStats, setShowStats] = useState(false);
-  const { resetStats, stats } = useGameStats();
+  const { stats } = useGameStats();
 
   useEffect(() => {
     const savedLanguage = loadLanguagePreference();
@@ -46,7 +46,7 @@ export function MainMenu({
       onLanguageChange(savedLanguage);
     }
     setMounted(true);
-  }, []);
+  }, [language, onLanguageChange]);
 
   if (!mounted) {
     return (
