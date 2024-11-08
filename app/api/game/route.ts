@@ -10,12 +10,7 @@ export async function POST(request: Request) {
       const word = getRandomWord(language);
       const length = word.length;
       
-      // Only log in development
-      if (process.env.NODE_ENV === 'development') {
-        console.info('New game word:', word, 'language:', language);
-      }
-      
-      // Store plain word in httpOnly cookie (it's secure enough)
+      // Store word in httpOnly cookie 
       cookies().set('gameWord', word, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
