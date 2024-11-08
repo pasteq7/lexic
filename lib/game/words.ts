@@ -1,19 +1,18 @@
 import { Language } from '@/lib/types/i18n';
 import { MIN_WORD_LENGTH, MAX_WORD_LENGTH } from './constants';
 import { LetterState } from '@/lib/types/game';
+import englishWords from 'an-array-of-english-words';
+import frenchWords from 'an-array-of-french-words';
 
-// Changed var to const and updated imports
-const englishWords = require('an-array-of-english-words') as string[];
-const frenchWords = require('an-array-of-french-words') as string[];
-// Initialize word lists
+// Initialize word lists with type assertions
 const VALID_WORDS: Record<Language, string[]> = {
-  en: englishWords.filter((word: string) => 
+  en: (englishWords as string[]).filter((word: string) => 
     word.length >= MIN_WORD_LENGTH && 
     word.length <= MAX_WORD_LENGTH &&
     /^[a-zÀ-ÿ]+$/i.test(word)
   ).map((word: string) => word.toLowerCase()),
   
-  fr: frenchWords.filter((word: string) => 
+  fr: (frenchWords as string[]).filter((word: string) => 
     word.length >= MIN_WORD_LENGTH && 
     word.length <= MAX_WORD_LENGTH &&
     /^[a-zÀ-ÿ]+$/i.test(word)
