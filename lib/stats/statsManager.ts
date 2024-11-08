@@ -48,7 +48,9 @@ export class StatsManager {
       lastPlayed: Number(stats.lastPlayed) || now,
       lastCompleted: Number(stats.lastCompleted) || now,
       guessDistribution: { ...stats.guessDistribution },
-      recentGames: Array.isArray(stats.recentGames) ? stats.recentGames : []
+      recentGames: Array.isArray(stats.recentGames) 
+        ? stats.recentGames.slice(0, MAX_RECENT_GAMES)
+        : []
     };
   }
 
@@ -101,7 +103,7 @@ export class StatsManager {
           timestamp: result.timestamp
         },
         ...this.stats.recentGames
-      ].slice(0, MAX_RECENT_GAMES) 
+      ].slice(0, MAX_RECENT_GAMES)
     };
 
     newStats.maxStreak = Math.max(this.stats.maxStreak, newStats.currentStreak);

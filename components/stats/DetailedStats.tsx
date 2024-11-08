@@ -4,6 +4,7 @@ import { Language } from '@/lib/types/i18n';
 import { t } from '@/lib/i18n/translations';
 import { STATS_ANIMATIONS } from '@/lib/utils/animations';
 import { statsManager } from '@/lib/stats/statsManager';
+import { TRIES } from '@/lib/game/constants';
 
 interface DetailedStatsProps {
   stats: GameStats;
@@ -54,24 +55,23 @@ const GuessDistributionBar = ({ count, total, isHighest }: { count: number; tota
 
 const GuessDistributionChart = ({ distribution, language }: { distribution: GuessDistribution; language: Language }) => {
   const maxCount = Math.max(...Object.values(distribution).filter(val => typeof val === 'number'));
+  const maxAttempts = TRIES;
   
   return (
     <div className="space-y-2">
       <h3 className="text-sm font-medium text-muted-foreground mb-2">
         {t('guessDistribution', language)}
       </h3>
-      {Object.entries(distribution)
-        .filter(([key]) => key !== 'total')
-        .map(([guess, count]) => (
-          <div key={guess} className="flex items-center gap-2">
-            <div className="w-4 text-sm text-muted-foreground">{guess}</div>
-            <GuessDistributionBar 
-              count={count} 
-              total={distribution.total} 
-              isHighest={count === maxCount && count > 0} 
-            />
-          </div>
-        ))}
+      {Array.from({ length: maxAttempts }, (_, i) => i + 1).map(guess => (
+        <div key={guess} className="flex items-center gap-2">
+          <div className="w-4 text-sm text-muted-foreground">{guess}</div>
+          <GuessDistributionBar 
+            count={distribution[guess] || 0} 
+            total={distribution.total} 
+            isHighest={(distribution[guess] || 0) === maxCount && maxCount > 0} 
+          />
+        </div>
+      ))}
     </div>
   );
 };
