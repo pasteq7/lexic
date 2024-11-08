@@ -1,4 +1,4 @@
-import { GuessResult, LetterState } from '@/lib/types/game';
+import { GuessResult } from '@/lib/types/game';
 import { KeyState } from '@/lib/types/keyboard';
 
 export function getKeyboardState(

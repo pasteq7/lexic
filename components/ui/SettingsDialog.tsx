@@ -53,7 +53,7 @@ export function SettingsDialog({
         description: t('dataCleared', language),
         variant: "default"
       });
-    } catch (error) {
+    } catch (err) {
       toast({
         title: t('error', language),
         description: t('failedToClear', language),
