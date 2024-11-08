@@ -8,12 +8,14 @@ interface KeyboardProps {
   keyStates: Record<string, KeyState>;
   onKey: (key: string) => void;
   keyboardLayout: KeyboardLayout;
+  isSubmitting: boolean;
 }
 
 export default function Keyboard({
   keyStates,
   onKey,
-  keyboardLayout
+  keyboardLayout,
+  isSubmitting
 }: KeyboardProps) {
   const stateStyles = {
     correct: 'bg-correct/100 hover:bg-correct/80 text-white',
@@ -45,6 +47,7 @@ export default function Keyboard({
                   ${isSpecialKey ? 'px-2 text-sm' : 'w-[2.2rem] sm:w-10'} 
                   h-11 sm:h-14 
                 `}
+                disabled={isSubmitting}
               >
                 {keyObj.key === 'Backspace' ? '←' : keyObj.key}
               </motion.button>
