@@ -20,7 +20,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={cn(
         inter.className,
-        "min-h-screen bg-background font-sans antialiased"
+        "min-h-[100dvh] bg-background font-sans antialiased"
       )} suppressHydrationWarning={true}>
         <div className="ambient-background">
           <div className="blob" style={{

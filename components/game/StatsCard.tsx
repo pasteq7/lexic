@@ -74,13 +74,13 @@ export function StatsCard({
           )}
         >
           <motion.div 
-            className="bg-transparent p-6  max-w-md w-full mx-4"
+            className="bg-transparent p-6 max-w-2xl w-full mx-4"
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -20, opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <div className="text-center mb-6">
+            <div className="text-center mb-8">
               <h2 className="text-2xl font-bold mb-2 text-primary">
                 {isWon ? t('youWon', language) : t('gameOver', language)}
               </h2>
@@ -98,7 +98,7 @@ export function StatsCard({
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-2 gap-6 mb-8">
               <Stats 
                 label={t('streak', language)} 
                 value={stats.currentStreak}
@@ -119,11 +119,11 @@ export function StatsCard({
               />
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex justify-center gap-6">
               <Button
                 onClick={onNewGame}
                 variant="outline"
-                className="flex-1 py-2 text-white rounded-lg font-bold"
+                className="w-48 py-3 text-white rounded-lg font-bold"
               >
                 {t('newGame', language)}
               </Button>

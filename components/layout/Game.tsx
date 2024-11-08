@@ -126,13 +126,13 @@ export function Game() {
         )}
       </AnimatePresence>
 
-      <div className="flex flex-col min-h-screen relative z-20 mt-8">
+      <div className="flex flex-col min-h-screen relative z-20">
         {isPlaying && !showMenu && (
-          <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10">
+          <div className="h-14 sm:h-20">
             <Button
               variant="outline"
               onClick={handleHome}
-              className="mb-6"
+              className="absolute top-2 sm:top-6 left-1/2 -translate-x-1/2 z-10"
             >
               <Home className="mr-2 h-4 w-4" />
               {t('home', language)}

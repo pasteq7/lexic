@@ -14,7 +14,7 @@ export function Board({ guesses, currentGuess, wordLength, shake }: BoardProps) 
   if (!wordLength) return null;
 
   return (
-    <div className="w-full max-w-[var(--game-max-width)] mx-auto">
+    <div className="w-full max-w-[var(--game-max-width)] mx-auto pt-2">
       <div className="grid gap-1 place-items-center mb-4">
         {Array(TRIES).fill(null).map((_, i) => {
           if (i < guesses.length) {

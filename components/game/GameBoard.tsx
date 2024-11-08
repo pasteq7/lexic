@@ -39,8 +39,8 @@ export function GameBoard({
   isSubmitting
 }: GameBoardProps) {
   return (
-    <div className="relative flex justify-center w-full mt-8">
-      <div className="w-[480px] flex flex-col items-center">
+    <div className="relative flex flex-col justify-center w-full">
+      <div className="w-full max-w-[480px] mx-auto flex flex-col items-center">
         <Board
           guesses={guesses}
           currentGuess={currentGuess}
@@ -65,7 +65,7 @@ export function GameBoard({
           onNewGame={onNewGame}
           revealedAnswer={revealedAnswer}
           language={language}
-          className="absolute top-0 left-full ml-4"
+          className="lg:absolute lg:top-0 lg:left-full lg:ml-4 mt-4 lg:mt-0 mx-auto"
         />
       )}
     </div>
