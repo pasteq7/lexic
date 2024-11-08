@@ -1,4 +1,4 @@
-import type { GameStats, GameResult, StatsError, StatsValidation } from '@/lib/types/game';
+import type { GameStats, GameResult} from '@/lib/types/game';
 import { MAX_RECENT_GAMES } from '@/lib/game/constants';
 
 
@@ -101,7 +101,7 @@ export class StatsManager {
           timestamp: result.timestamp
         },
         ...this.stats.recentGames
-      ].slice(0, MAX_RECENT_GAMES) // Keep only recent games
+      ].slice(0, MAX_RECENT_GAMES) 
     };
 
     newStats.maxStreak = Math.max(this.stats.maxStreak, newStats.currentStreak);
