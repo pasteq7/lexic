@@ -116,25 +116,7 @@ export class StatsManager {
     this.saveStats();
     return this.getStats();
   }
-
-  private validateStatsData(stats: Partial<GameStats>): StatsValidation {
-    const errors: StatsError[] = [];
-    
-    // Add validation logic here
-    // Example:
-    if (stats.gamesPlayed && stats.gamesPlayed < 0) {
-      errors.push({
-        code: 'INVALID_GAMES_PLAYED',
-        message: 'Games played cannot be negative'
-      });
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors: errors.length > 0 ? errors : undefined
-    };
-  }
-
+  
   private calculateNewStreak(now: number): boolean {
     return (now - this.stats.lastCompleted) < 24 * 60 * 60 * 1000;
   }
