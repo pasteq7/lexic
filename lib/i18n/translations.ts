@@ -52,6 +52,7 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     confirmDelete: 'Are you sure? ',  
     cancel: 'Cancel',
     clearGameData: 'Clear Game Data',
+    pressEnterNewGame: 'Press Enter for New Game',
   },
   fr: {
     startGame: 'Commencer',
@@ -104,6 +105,7 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     confirmDelete: 'Êtes-vous sûr ?',
     cancel: 'Annuler',
     clearGameData: 'Effacer les Données du Jeu',
+    pressEnterNewGame: 'Appuyez sur Entrée pour une nouvelle partie',
   }
 };
 

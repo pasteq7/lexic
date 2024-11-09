@@ -23,7 +23,14 @@ export function useGameInput({
   isSubmitting
 }: UseGameInputProps) {
   const handleKeyPress = useCallback((key: string) => {
-    if (!isPlaying || gameOver || isSubmitting) return;
+    if (!isPlaying) return;
+    
+    if (gameOver && key.toLowerCase() === 'enter') {
+      onSubmit();
+      return;
+    }
+
+    if (gameOver || isSubmitting) return;
 
     switch (key.toLowerCase()) {
       case 'enter':

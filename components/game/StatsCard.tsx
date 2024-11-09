@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import React from 'react';
 import { Language } from '@/lib/types/i18n';
 import { ANIMATIONS, STATS_ANIMATIONS } from '@/lib/utils/animations';
+import { Keyboard } from "lucide-react";
 
 interface StatsCardProps {
   stats: GameStats;
@@ -119,7 +120,7 @@ export function StatsCard({
               />
             </div>
 
-            <div className="flex justify-center gap-6">
+            <div className="flex justify-center gap-6 flex-col items-center">
               <Button
                 onClick={onNewGame}
                 variant="outline"
@@ -127,6 +128,16 @@ export function StatsCard({
               >
                 {t('newGame', language)}
               </Button>
+              
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="flex items-center gap-2 text-sm text-muted-foreground mt-2"
+              >
+                <Keyboard size={16} />
+                {t('pressEnterNewGame', language)}
+              </motion.div>
             </div>
           </motion.div>
         </motion.div>

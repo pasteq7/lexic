@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { MainMenu } from '@/components/layout/MainMenu';
 import { GameBoard } from '@/components/game/GameBoard';
 import { useGameLogic } from '@/hooks/game/useGameLogic';
-import { useGameInput } from '@/hooks/game/useGameInput';
 import { useGameEffects } from '@/hooks/game/useGameEffects';
 import { useGameStats } from '@/hooks/stats/useGameStats';
 import { useToast } from '@/hooks/use-toast';
@@ -18,6 +17,7 @@ import { loadGameState, saveGameState } from '@/lib/utils/storage';
 import { KeyboardLayout, KeyState } from '@/lib/types/keyboard';
 import { getKeyboardState } from '@/lib/utils/keyboard';
 import { saveLanguagePreference } from '@/lib/utils/storage';
+
 
 export function Game() {
   const [showMenu, setShowMenu] = useState(true);
@@ -46,43 +46,7 @@ export function Game() {
     resetGame,
   } = useGameLogic({ language });
 
-  const handleSubmitGuess = async () => {
-    const result = await submitGuess(currentGuess);
-    if (!result.isValid && result.message) {
-      setShake(true);
-      setTimeout(() => setShake(false), 600);
-      toast({
-        title: t('error', language),
-        description: t(result.message as TranslationKey, language),
-        duration: 2000
-      });
-    }
-  };
-
-  const { handleKeyPress } = useGameInput({
-    isPlaying,
-    gameOver,
-    currentGuess,
-    wordLength,
-    onSubmit: handleSubmitGuess,
-    onUpdateGuess: updateCurrentGuess,
-    keyboardLayout,
-    isSubmitting
-  });
-
-  useGameEffects({
-    gameOver,
-    guesses,
-    revealedAnswer,
-    onShowStats: setShowStatsCard
-  });
-
-  const handleLanguageChange = (newLang: Language) => {
-    setLanguage(newLang);
-    saveLanguagePreference(newLang);
-  };
-
-  const handleStartGame = async () => {
+  const handleStartGame = useCallback(async () => {
     setShowStatsCard(false);
     setShowMenu(false);
     setIsPlaying(true);
@@ -94,6 +58,90 @@ export function Game() {
         duration: 2000
       });
     }
+  }, [newGame, language, toast]);
+
+  const handleSubmitGuess = useCallback(async () => {
+    const result = await submitGuess(currentGuess);
+    if (!result.isValid && result.message) {
+      setShake(true);
+      setTimeout(() => setShake(false), 600);
+      toast({
+        title: t('error', language),
+        description: t(result.message as TranslationKey, language),
+        duration: 2000
+      });
+    }
+  }, [submitGuess, currentGuess, language, toast]);
+
+  const handleKeyPress = useCallback((key: string) => {
+    if (gameOver && key.toLowerCase() === 'enter') {
+      handleStartGame();
+      return;
+    }
+
+    if (!isPlaying || isSubmitting) return;
+
+    switch (key.toLowerCase()) {
+      case 'enter':
+        if (currentGuess.length === wordLength) {
+          handleSubmitGuess();
+        }
+        break;
+      case 'backspace':
+        updateCurrentGuess(currentGuess.slice(0, -1));
+        break;
+      default:
+        if (
+          key.length === 1 && 
+          /^[a-zàâäéèêëîïôöùûüÿçæœ]$/i.test(key) && 
+          currentGuess.length < wordLength
+        ) {
+          updateCurrentGuess(currentGuess + key.toLowerCase());
+        }
+        break;
+    }
+  }, [
+    gameOver,
+    handleStartGame,
+    isPlaying,
+    isSubmitting,
+    currentGuess,
+    wordLength,
+    handleSubmitGuess,
+    updateCurrentGuess
+  ]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (gameOver && event.key === 'Enter') {
+        event.preventDefault();
+        handleStartGame();
+        return;
+      }
+
+      if (!isPlaying) return;
+
+      const key = event.key;
+      if (key === 'Enter' || key === 'Backspace' || /^[a-zàâäéèêëîïôöùûüÿçæœ]$/i.test(key)) {
+        event.preventDefault();
+        handleKeyPress(key);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [gameOver, handleStartGame, isPlaying, handleKeyPress]);
+
+  useGameEffects({
+    gameOver,
+    guesses,
+    revealedAnswer,
+    onShowStats: setShowStatsCard
+  });
+
+  const handleLanguageChange = (newLang: Language) => {
+    setLanguage(newLang);
+    saveLanguagePreference(newLang);
   };
 
   const handleHome = () => {

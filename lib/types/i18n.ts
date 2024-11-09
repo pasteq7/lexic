@@ -42,6 +42,7 @@ export type TranslationKey =
   | 'gamesWon'
   | 'confirmDelete'
   | 'cancel'
-  | 'clearGameData';
+  | 'clearGameData'
+  | 'pressEnterNewGame';
 
 export type TranslationParams = Record<string, string | number>;
