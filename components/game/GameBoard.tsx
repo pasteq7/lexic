@@ -42,6 +42,7 @@ export function GameBoard({
   language,
   isSubmitting,
   isLoading,
+  gameMode,
   initialStates, 
 }: GameBoardProps) {
   if (isLoading) {
@@ -80,6 +81,7 @@ export function GameBoard({
           onNewGame={onNewGame}
           revealedAnswer={revealedAnswer}
           language={language}
+          gameMode={gameMode}
           className="lg:absolute lg:top-0 lg:left-full lg:ml-4 mt-4 lg:mt-0 mx-auto"
         />
       )}

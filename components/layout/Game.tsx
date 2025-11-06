@@ -134,7 +134,7 @@ export function Game() {
   }, [submitGuess, currentGuess, language, toast, wordLength]);
 
   const handleKeyPress = useCallback((key: string) => {
-    if (gameOver && key.toLowerCase() === 'enter') {
+    if (gameOver && key.toLowerCase() === 'enter' && gameMode === 'infinite') {
       handleStartGame(gameMode);
       return;
     }

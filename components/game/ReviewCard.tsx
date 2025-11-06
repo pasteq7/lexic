@@ -1,4 +1,4 @@
-import { GameStats, GuessResult } from '@/lib/types/game';
+import { GameMode, GameStats, GuessResult } from '@/lib/types/game';
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { t } from '@/lib/i18n/translations';
@@ -17,6 +17,7 @@ interface ReviewCardProps {
   revealedAnswer?: string | null;
   language: Language;
   className?: string;
+  gameMode: GameMode;
 }
 
 const Stats = React.memo(({ 
@@ -51,7 +52,8 @@ export function ReviewCard({
   onNewGame, 
   revealedAnswer,
   language,
-  className 
+  className,
+  gameMode
 }: ReviewCardProps) {
   const isWon = guesses.length > 0 && guesses[guesses.length - 1].isCorrect;
   const winPercentage = stats.gamesPlayed > 0 
@@ -119,29 +121,34 @@ export function ReviewCard({
                 value={winPercentage} 
               />
             </div>
-
+            
             <div className="flex justify-center gap-6 flex-col items-center">
-              <Button
-                onClick={onNewGame}
-                variant="outline"
-                className="w-48 py-3 text-white rounded-lg font-bold"
-              >
-                {t('newGame', language)}
-              </Button>
-              
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                className="flex items-center gap-2 text-sm text-muted-foreground mt-2"
-              >
-                <Keyboard size={16} />
-                {t('pressEnterNewGame', language)}
-              </motion.div>
+              {gameMode === 'infinite' && (
+                <>
+                  <Button
+                    onClick={onNewGame}
+                    variant="outline"
+                    className="w-48 py-3 text-white rounded-lg font-bold"
+                  >
+                    {t('newGame', language)}
+                  </Button>
+                  
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                    className="flex items-center gap-2 text-sm text-muted-foreground mt-2"
+                  >
+                    <Keyboard size={16} />
+                    {t('pressEnterNewGame', language)}
+                  </motion.div>
+                </>
+              )}
             </div>
+
           </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
   );
-} 
+}
