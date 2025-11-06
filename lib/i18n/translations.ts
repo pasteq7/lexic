@@ -57,7 +57,6 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     wordOfTheDay: 'Word of the Day',
     todaysSet: "Today's Set",
     loading: 'Loading...',
-    firstLetterLocked: 'The first letter is locked.',
   },
   fr: {
     startGame: 'Jouer',
@@ -115,7 +114,6 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     wordOfTheDay: 'Mot du Jour',
     todaysSet: 'Série du Jour',
     loading: 'Chargement...',
-    firstLetterLocked: 'La première lettre est verrouillée.',
   }
 };
 

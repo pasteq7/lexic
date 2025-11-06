@@ -57,11 +57,6 @@ export function Game() {
     onFirstLetterDeleteAttempt: () => {
       setShake(true);
       setTimeout(() => setShake(false), 600);
-      toast({
-        description: t('firstLetterLocked', language),
-        variant: 'info',
-        duration: 1500,
-      });
     }
   });
 
