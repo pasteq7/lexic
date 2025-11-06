@@ -1,195 +1,379 @@
-// hooks/game/useGameEngine.ts
-import { useReducer, useCallback } from 'react';
+// hooks/game/useGameEngine.ts - COMPLETE REWRITE
+import { useReducer, useCallback, useEffect, useRef } from 'react';
 import { GameMode, GuessResult } from '@/lib/types/game';
 import { Language } from '@/lib/types/i18n';
 import { TRIES } from '@/lib/game/constants';
 import { TranslationKey } from '@/lib/types/i18n';
 
-// 1. Define the single, comprehensive state object for the entire game
 export interface GameEngineState {
+  // Core game state
   wordLength: number;
+  firstLetter: string;
   guesses: GuessResult[];
   currentGuess: string;
+  
+  // Game status
   gameOver: boolean;
+  revealedAnswer: string | null;
+  
+  // UI state
   isSubmitting: boolean;
   isLoading: boolean;
-  revealedAnswer: string | null;
-  firstLetter: string;
+  shake: boolean;
+  toast: { 
+    messageKey: TranslationKey; 
+    params?: Record<string, string | number>;
+    type: 'destructive' | 'success' | 'info';
+  } | null;
+  
+  // Configuration
   gameMode: GameMode;
   language: Language;
-  shake: boolean;
-  // FIX: Replaced 'any' with more specific types for better type safety.
-  toast: { messageKey: TranslationKey; params?: Record<string, string | number>, type: 'destructive' | 'success' | 'info' } | null;
+  
+  // Session tracking
+  sessionId: string;
+  lastActionTimestamp: number;
 }
 
-// 2. Define all possible state transitions (actions)
 type GameAction =
-  | { type: 'START_NEW_GAME'; payload: { gameMode: GameMode; language: Language } }
-  | { type: 'NEW_GAME_SUCCESS'; payload: { wordLength: number; firstLetter: string } }
-  | { type: 'NEW_GAME_FAILURE'; payload: { error: TranslationKey } }
-  | { type: 'SUBMIT_GUESS' }
-  | { type: 'SUBMIT_SUCCESS'; payload: { newGuess: GuessResult; isGameOver: boolean; answer?: string } }
-  | { type: 'SUBMIT_FAILURE'; payload: { messageKey: TranslationKey } }
-  | { type: 'UPDATE_CURRENT_GUESS'; payload: { newGuess: string } }
-  | { type: 'LOAD_IN_PROGRESS_GAME'; payload: { guesses: GuessResult[]; revealedAnswer: string | null, wordLength: number, firstLetter: string } }
-  | { type: 'RESET_SHAKE' }
+  | { type: 'INIT_NEW_GAME'; payload: { gameMode: GameMode; language: Language; sessionId: string } }
+  | { type: 'GAME_LOADED'; payload: { wordLength: number; firstLetter: string } }
+  | { type: 'GAME_LOAD_FAILED'; payload: { error: TranslationKey } }
+  | { type: 'UPDATE_GUESS'; payload: { guess: string } }
+  | { type: 'START_SUBMIT' }
+  | { type: 'SUBMIT_SUCCESS'; payload: { guess: GuessResult; isGameOver: boolean; answer?: string } }
+  | { type: 'SUBMIT_FAILED'; payload: { messageKey: TranslationKey } }
+  | { type: 'LOAD_SAVED_GAME'; payload: { guesses: GuessResult[]; revealedAnswer: string | null; wordLength: number; firstLetter: string } }
+  | { type: 'CLEAR_SHAKE' }
   | { type: 'CLEAR_TOAST' }
-  | { type: 'RESET_GAME' };
+  | { type: 'RESET' };
+
+const generateSessionId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
 const initialState: GameEngineState = {
   wordLength: 0,
+  firstLetter: '',
   guesses: [],
   currentGuess: '',
   gameOver: false,
-  isSubmitting: false,
-  isLoading: true,
   revealedAnswer: null,
-  firstLetter: '',
-  gameMode: 'infinite',
-  language: 'en',
+  isSubmitting: false,
+  isLoading: false,
   shake: false,
   toast: null,
+  gameMode: 'infinite',
+  language: 'en',
+  sessionId: generateSessionId(),
+  lastActionTimestamp: Date.now(),
 };
 
-// 3. The reducer function handles all state updates atomically and predictably
 function gameReducer(state: GameEngineState, action: GameAction): GameEngineState {
+  const timestamp = Date.now();
+  
   switch (action.type) {
-    case 'START_NEW_GAME':
-      return { ...initialState, isLoading: true, gameMode: action.payload.gameMode, language: action.payload.language };
+    case 'INIT_NEW_GAME':
+      return {
+        ...initialState,
+        gameMode: action.payload.gameMode,
+        language: action.payload.language,
+        sessionId: action.payload.sessionId,
+        isLoading: true,
+        lastActionTimestamp: timestamp,
+      };
 
-    case 'NEW_GAME_SUCCESS':
+    case 'GAME_LOADED':
       return {
         ...state,
         wordLength: action.payload.wordLength,
         firstLetter: action.payload.firstLetter,
         currentGuess: action.payload.firstLetter,
         isLoading: false,
-        guesses: [],
-        gameOver: false,
-        revealedAnswer: null,
+        lastActionTimestamp: timestamp,
       };
 
-    case 'NEW_GAME_FAILURE':
-      return { ...state, isLoading: false, toast: { messageKey: action.payload.error, type: 'destructive' } };
-
-    case 'UPDATE_CURRENT_GUESS':
-      if (state.gameOver) return state;
-      if (action.payload.newGuess.length < state.firstLetter.length || !action.payload.newGuess.toLowerCase().startsWith(state.firstLetter.toLowerCase())) {
-        return { ...state, shake: true };
-      }
-      return { ...state, currentGuess: action.payload.newGuess };
-      
-    case 'SUBMIT_GUESS':
-      return { ...state, isSubmitting: true };
-
-    case 'SUBMIT_SUCCESS': {
-      const { newGuess, isGameOver, answer } = action.payload;
-      const newGuesses = [...state.guesses, newGuess];
+    case 'GAME_LOAD_FAILED':
       return {
         ...state,
-        isSubmitting: false,
+        isLoading: false,
+        toast: { messageKey: action.payload.error, type: 'destructive' },
+        lastActionTimestamp: timestamp,
+      };
+
+    case 'UPDATE_GUESS': {
+      if (state.gameOver || state.isSubmitting) return state;
+      
+      const newGuess = action.payload.guess.toLowerCase();
+      
+      // Validate first letter constraint
+      if (!newGuess.startsWith(state.firstLetter.toLowerCase())) {
+        return {
+          ...state,
+          shake: true,
+          toast: { messageKey: 'invalidWord', type: 'destructive' },
+          lastActionTimestamp: timestamp,
+        };
+      }
+      
+      // Validate length
+      if (newGuess.length > state.wordLength) {
+        return state;
+      }
+      
+      return {
+        ...state,
+        currentGuess: newGuess,
+        shake: false,
+        lastActionTimestamp: timestamp,
+      };
+    }
+
+    case 'START_SUBMIT':
+      return {
+        ...state,
+        isSubmitting: true,
+        lastActionTimestamp: timestamp,
+      };
+
+    case 'SUBMIT_SUCCESS': {
+      const newGuesses = [...state.guesses, action.payload.guess];
+      const isGameOver = action.payload.isGameOver;
+      
+      return {
+        ...state,
         guesses: newGuesses,
         currentGuess: isGameOver ? '' : state.firstLetter,
         gameOver: isGameOver,
-        revealedAnswer: answer || null,
+        revealedAnswer: action.payload.answer || state.revealedAnswer,
+        isSubmitting: false,
+        shake: false,
+        lastActionTimestamp: timestamp,
       };
     }
 
-    case 'SUBMIT_FAILURE':
-      return { ...state, isSubmitting: false, shake: true, toast: { messageKey: action.payload.messageKey, type: 'destructive' } };
-      
-    case 'LOAD_IN_PROGRESS_GAME': {
-      const { guesses, revealedAnswer, wordLength, firstLetter } = action.payload;
-      const isGameOver = !!revealedAnswer || guesses.length >= TRIES || (guesses.length > 0 && guesses[guesses.length - 1].isCorrect);
+    case 'SUBMIT_FAILED':
       return {
         ...state,
-        guesses,
-        revealedAnswer,
-        wordLength,
-        firstLetter,
-        currentGuess: isGameOver ? '' : firstLetter,
+        isSubmitting: false,
+        shake: true,
+        toast: { messageKey: action.payload.messageKey, type: 'destructive' },
+        lastActionTimestamp: timestamp,
+      };
+
+    case 'LOAD_SAVED_GAME': {
+      const isGameOver = 
+        !!action.payload.revealedAnswer || 
+        action.payload.guesses.length >= TRIES ||
+        (action.payload.guesses.length > 0 && 
+         action.payload.guesses[action.payload.guesses.length - 1].isCorrect);
+      
+      return {
+        ...state,
+        guesses: action.payload.guesses,
+        revealedAnswer: action.payload.revealedAnswer,
+        wordLength: action.payload.wordLength,
+        firstLetter: action.payload.firstLetter,
+        currentGuess: isGameOver ? '' : action.payload.firstLetter,
         gameOver: isGameOver,
         isLoading: false,
+        lastActionTimestamp: timestamp,
       };
     }
 
-    case 'RESET_SHAKE':
+    case 'CLEAR_SHAKE':
       return { ...state, shake: false };
-      
+
     case 'CLEAR_TOAST':
       return { ...state, toast: null };
 
-    case 'RESET_GAME':
-      return { ...initialState, language: state.language };
+    case 'RESET':
+      return {
+        ...initialState,
+        language: state.language,
+        sessionId: generateSessionId(),
+        lastActionTimestamp: timestamp,
+      };
 
     default:
       return state;
   }
 }
 
-// 4. The new hook that components will use
 export function useGameEngine() {
   const [state, dispatch] = useReducer(gameReducer, initialState);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   const newGame = useCallback(async (options: { gameMode: GameMode; language: Language }) => {
-    dispatch({ type: 'START_NEW_GAME', payload: options });
+    // Cancel any pending requests
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    
+    const sessionId = generateSessionId();
+    abortControllerRef.current = new AbortController();
+    
+    dispatch({ 
+      type: 'INIT_NEW_GAME', 
+      payload: { ...options, sessionId } 
+    });
+
     try {
       const response = await fetch('/api/game', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'new', language: options.language, gameMode: options.gameMode })
+        body: JSON.stringify({ 
+          action: 'new', 
+          language: options.language, 
+          gameMode: options.gameMode,
+          sessionId 
+        }),
+        signal: abortControllerRef.current.signal,
       });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
       const data = await response.json();
-      if (!data.success) throw new Error(data.error || 'failedToStart');
-      dispatch({ type: 'NEW_GAME_SUCCESS', payload: { wordLength: data.length, firstLetter: data.firstLetter } });
+      
+      if (!data.success) {
+        throw new Error(data.error || 'failedToStart');
+      }
+
+      dispatch({ 
+        type: 'GAME_LOADED', 
+        payload: { 
+          wordLength: data.length, 
+          firstLetter: data.firstLetter 
+        } 
+      });
+
       return { success: true, ...data };
-    } catch (e) {
-      // FIX: Removed the unused 'error' variable.
-      const errorMessage = (e instanceof Error ? e.message : 'failedToStart') as TranslationKey;
-      dispatch({ type: 'NEW_GAME_FAILURE', payload: { error: errorMessage } });
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        return { success: false, error: 'cancelled' };
+      }
+      
+      const errorMessage = (error instanceof Error ? error.message : 'failedToStart') as TranslationKey;
+      dispatch({ type: 'GAME_LOAD_FAILED', payload: { error: errorMessage } });
       return { success: false, error: errorMessage };
     }
   }, []);
 
   const submitGuess = useCallback(async () => {
     if (state.isSubmitting || state.gameOver) return;
-    dispatch({ type: 'SUBMIT_GUESS' });
+    
+    // Validate guess length
+    if (state.currentGuess.length !== state.wordLength) {
+      dispatch({ 
+        type: 'SUBMIT_FAILED', 
+        payload: { messageKey: 'wordLength' } 
+      });
+      return;
+    }
+
+    dispatch({ type: 'START_SUBMIT' });
+
     try {
       const response = await fetch('/api/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ guess: state.currentGuess, language: state.language, guessCount: state.guesses.length })
+        body: JSON.stringify({ 
+          guess: state.currentGuess, 
+          language: state.language, 
+          guessCount: state.guesses.length 
+        }),
       });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
       const data = await response.json();
+
       if (!data.isValid) {
-        dispatch({ type: 'SUBMIT_FAILURE', payload: { messageKey: data.message || 'notInWordList' } });
+        dispatch({ 
+          type: 'SUBMIT_FAILED', 
+          payload: { messageKey: data.message || 'notInWordList' } 
+        });
         return;
       }
-      dispatch({ 
-        type: 'SUBMIT_SUCCESS', 
-        payload: { 
-          newGuess: { word: state.currentGuess, letterStates: data.letterStates, isCorrect: data.isCorrect },
-          isGameOver: data.isGameOver,
-          answer: data.answer
-        }
+
+      const newGuess: GuessResult = {
+        word: state.currentGuess,
+        letterStates: data.letterStates,
+        isCorrect: data.isCorrect,
+      };
+
+      dispatch({
+        type: 'SUBMIT_SUCCESS',
+        payload: {
+          guess: newGuess,
+          isGameOver: data.isCorrect || state.guesses.length + 1 >= TRIES,
+          answer: data.answer,
+        },
       });
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      dispatch({ type: 'SUBMIT_FAILURE', payload: { messageKey: 'error' } });
+      console.error('Submit error:', error);
+      dispatch({ 
+        type: 'SUBMIT_FAILED', 
+        payload: { messageKey: 'error' } 
+      });
     }
-  }, [state.currentGuess, state.language, state.guesses.length, state.isSubmitting, state.gameOver]);
+  }, [state.currentGuess, state.wordLength, state.language, state.guesses.length, state.isSubmitting, state.gameOver]);
 
   const updateCurrentGuess = useCallback((newGuess: string) => {
-    dispatch({ type: 'UPDATE_CURRENT_GUESS', payload: { newGuess } });
-  }, []);
-  
-  const loadInProgressGame = useCallback((savedState: { guesses: GuessResult[], revealedAnswer: string | null }, wordInfo: { wordLength: number, firstLetter: string }) => {
-    dispatch({ type: 'LOAD_IN_PROGRESS_GAME', payload: { ...savedState, ...wordInfo } });
+    dispatch({ type: 'UPDATE_GUESS', payload: { guess: newGuess } });
   }, []);
 
-  const resetGame = useCallback(() => dispatch({ type: 'RESET_GAME' }), []);
-  const resetShake = useCallback(() => dispatch({ type: 'RESET_SHAKE' }), []);
-  const clearToast = useCallback(() => dispatch({ type: 'CLEAR_TOAST' }), []);
+  const loadInProgressGame = useCallback((
+    savedState: { guesses: GuessResult[]; revealedAnswer: string | null }, 
+    wordInfo: { wordLength: number; firstLetter: string }
+  ) => {
+    dispatch({ 
+      type: 'LOAD_SAVED_GAME', 
+      payload: { ...savedState, ...wordInfo } 
+    });
+  }, []);
 
-  return { state, newGame, submitGuess, updateCurrentGuess, loadInProgressGame, resetGame, resetShake, clearToast };
+  const resetGame = useCallback(() => {
+    dispatch({ type: 'RESET' });
+  }, []);
+
+  const resetShake = useCallback(() => {
+    dispatch({ type: 'CLEAR_SHAKE' });
+  }, []);
+
+  const clearToast = useCallback(() => {
+    dispatch({ type: 'CLEAR_TOAST' });
+  }, []);
+
+  // Auto-clear shake after animation
+  useEffect(() => {
+    if (state.shake) {
+      const timer = setTimeout(() => {
+        dispatch({ type: 'CLEAR_SHAKE' });
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [state.shake]);
+
+  return {
+    state,
+    newGame,
+    submitGuess,
+    updateCurrentGuess,
+    loadInProgressGame,
+    resetGame,
+    resetShake,
+    clearToast,
+  };
 }
