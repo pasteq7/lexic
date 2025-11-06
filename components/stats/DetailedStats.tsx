@@ -88,18 +88,18 @@ export function DetailedStats({ allStats, language }: DetailedStatsProps) {
   return (
     <Tabs defaultValue="infinite" className="w-full">
       <TabsList className="grid w-full grid-cols-3">
-        <TabsTrigger value="infinite">{t('infinite', language)}</TabsTrigger>
         <TabsTrigger value="wordOfTheDay">{t('wordOfTheDay', language)}</TabsTrigger>
         <TabsTrigger value="todaysSet">{t('todaysSet', language)}</TabsTrigger>
+        <TabsTrigger value="infinite">{t('infinite', language)}</TabsTrigger>
       </TabsList>
-      <TabsContent value="infinite" className="pt-4">
-        <SingleModeStats stats={allStats.infinite} language={language} />
-      </TabsContent>
       <TabsContent value="wordOfTheDay" className="pt-4">
         <SingleModeStats stats={allStats.wordOfTheDay} language={language} />
       </TabsContent>
       <TabsContent value="todaysSet" className="pt-4">
         <SingleModeStats stats={allStats.todaysSet} language={language} />
+      </TabsContent>
+      <TabsContent value="infinite" className="pt-4">
+        <SingleModeStats stats={allStats.infinite} language={language} />
       </TabsContent>
     </Tabs>
   );
