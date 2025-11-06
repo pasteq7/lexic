@@ -1,13 +1,12 @@
+// components/game/ReviewCard.tsx
 import { GameMode, GameStats, GuessResult } from '@/lib/types/game';
-import { Search } from "lucide-react";
+import { Search, Trophy, XCircle, Keyboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { t } from '@/lib/i18n/translations';
 import { cn } from '@/lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import React from 'react';
 import { Language } from '@/lib/types/i18n';
-import { ANIMATIONS, STATS_ANIMATIONS } from '@/lib/utils/animations';
-import { Keyboard } from "lucide-react";
 
 interface ReviewCardProps {
   stats: GameStats;
@@ -20,34 +19,22 @@ interface ReviewCardProps {
   gameMode: GameMode;
 }
 
-const Stats = React.memo(({
+const StatDisplay = React.memo(({
   label,
   value,
 }: {
   label: string;
-  value: number;
-  highlight?: boolean;
+  value: number | string;
 }) => (
-  <motion.div
-    className={cn(
-      "text-center p-4 rounded-lg",
-    )}
-    initial={STATS_ANIMATIONS.COUNT.initial}
-    animate={STATS_ANIMATIONS.COUNT.animate}
-    transition={STATS_ANIMATIONS.COUNT.transition}
-  >
-    <motion.div className="text-2xl font-bold text-primary">
-      {Math.round(value)}
-    </motion.div>
-    <div className="text-sm text-primary/50">{label}</div>
-  </motion.div>
+  <div className="text-center">
+    <div className="text-3xl font-bold text-primary">{value}</div>
+    <div className="text-xs text-primary/60 uppercase tracking-wider">{label}</div>
+  </div>
 ));
-
-Stats.displayName = 'Stats';
+StatDisplay.displayName = 'StatDisplay';
 
 export function ReviewCard({
   stats,
-  gameOver,
   guesses,
   onNewGame,
   revealedAnswer,
@@ -67,85 +54,78 @@ export function ReviewCard({
   };
 
   return (
-    <AnimatePresence>
-      {gameOver && stats && (
-        <motion.div
-          {...ANIMATIONS.REVEAL}
-          className={cn(
-            "flex items-center justify-center",
-            className
-          )}
-        >
-          <motion.div
-            className="bg-transparent p-6 max-w-2xl w-full mx-4"
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -20, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="text-center mb-8">
-              {gameOver && !isWon && revealedAnswer && (
-                <p className="text-lg text-primary">
-                  {t('answer', language, { word: revealedAnswer })}
-                  <button
-                    onClick={handleSearch}
-                    className="inline-flex items-center ml-2 text-muted-foreground hover:text-primary"
-                    title={t('searchDefinition', language)}
-                  >
-                    <Search size={16} />
-                  </button>
-                </p>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-6 mb-8">
-              <Stats
-                label={t('streak', language)}
-                value={stats.currentStreak}
-                highlight={stats.currentStreak > 0}
-              />
-              <Stats
-                label={t('maxStreak', language)}
-                value={stats.maxStreak}
-                highlight={stats.currentStreak === stats.maxStreak && stats.maxStreak > 0}
-              />
-              <Stats
-                label={t('gamesPlayed', language)}
-                value={stats.gamesPlayed}
-              />
-              <Stats
-                label={t('winPercentage', language)}
-                value={winPercentage}
-              />
-            </div>
-            
-            <div className="flex justify-center gap-6 flex-col items-center">
-              {gameMode === 'infinite' && (
-                <>
-                  <Button
-                    onClick={onNewGame}
-                    variant="outline"
-                    className="w-48 py-3 text-white rounded-lg font-bold"
-                  >
-                    {t('newGame', language)}
-                  </Button>
-                  
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5 }}
-                    className="flex items-center gap-2 text-sm text-muted-foreground mt-2"
-                  >
-                    <Keyboard size={16} />
-                    {t('pressEnterNewGame', language)}
-                  </motion.div>
-                </>
-              )}
-            </div>
-
-          </motion.div>
-        </motion.div>
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95, y: 20 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95, y: 20 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+      className={cn(
+        "bg-background/80 backdrop-blur-md border border-primary/20 rounded-xl shadow-2xl",
+        "w-full max-w-sm p-6 text-center",
+        className
       )}
-    </AnimatePresence>
+    >
+      <div className="flex flex-col items-center mb-4">
+        {isWon ? (
+          <Trophy className="w-12 h-12 text-correct mb-2" />
+        ) : (
+          <XCircle className="w-12 h-12 text-destructive mb-2" />
+        )}
+        <h2 className="text-2xl font-bold text-primary">
+          {isWon ? t('youWon', language) : t('gameOver', language)}
+        </h2>
+        {revealedAnswer && (
+          <div className="flex items-center mt-1">
+            <p className="text-lg text-primary/80">
+              {t('answer', language, { word: revealedAnswer.toUpperCase() })}
+            </p>
+            <button
+              onClick={handleSearch}
+              className="ml-2 text-primary/60 hover:text-primary transition-colors"
+              title={t('searchDefinition', language)}
+            >
+              <Search size={16} />
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 gap-y-6 my-8">
+        <StatDisplay
+          label={t('streak', language)}
+          value={stats.currentStreak}
+        />
+        <StatDisplay
+          label={t('maxStreak', language)}
+          value={stats.maxStreak}
+        />
+        <StatDisplay
+          label={t('gamesPlayed', language)}
+          value={stats.gamesPlayed}
+        />
+        <StatDisplay
+          label={t('winPercentage', language)}
+          value={`${winPercentage}%`}
+        />
+      </div>
+      
+      <div className="flex flex-col items-center gap-3">
+        {gameMode === 'infinite' && (
+          <>
+            <Button
+              onClick={onNewGame}
+              variant="outline"
+              className="w-full py-6 text-lg font-bold"
+            >
+              {t('newGame', language)}
+            </Button>
+            <div className="flex items-center gap-2 text-sm text-primary/50">
+              <Keyboard size={14} />
+              <span>{t('pressEnterNewGame', language)}</span>
+            </div>
+          </>
+        )}
+      </div>
+    </motion.div>
   );
 }

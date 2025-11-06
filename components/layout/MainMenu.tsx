@@ -1,3 +1,4 @@
+// components/layout/MainMenu.tsx
 'use client';
 
 import { motion } from 'framer-motion';
@@ -16,6 +17,7 @@ import { useGameStats } from '@/hooks/stats/useGameStats';
 import { MENU_ANIMATIONS } from '@/lib/utils/animations';
 import { DetailedStats } from '@/components/stats/DetailedStats';
 
+// Added the missing interface definition
 interface MainMenuProps {
   selectedLanguage: Language;
   onLanguageChange: (lang: Language) => void;
@@ -24,11 +26,16 @@ interface MainMenuProps {
   onKeyboardLayoutChange: (layout: KeyboardLayout) => void;
 }
 
-const isDailyCompleted = (stats: GameStats) => {
+const isCompletedToday = (stats: GameStats) => {
   if (!stats || stats.lastCompleted === 0) return false;
-  const lastCompletionDate = new Date(stats.lastCompleted);
+  
   const today = new Date();
-  return lastCompletionDate.toDateString() === today.toDateString();
+  const todayDay = Math.floor(today.getTime() / (1000 * 60 * 60 * 24));
+
+  const lastCompletionDate = new Date(stats.lastCompleted);
+  const lastCompletionDay = Math.floor(lastCompletionDate.getTime() / (1000 * 60 * 60 * 24));
+  
+  return lastCompletionDay === todayDay;
 };
 
 export function MainMenu({ 
@@ -59,8 +66,8 @@ export function MainMenu({
     }
   };
 
-  const wordOfTheDayCompleted = isDailyCompleted(wordOfTheDayStats);
-  const todaysSetCompleted = isDailyCompleted(todaysSetStats);
+  const wordOfTheDayCompleted = isCompletedToday(wordOfTheDayStats);
+  const todaysSetCompleted = isCompletedToday(todaysSetStats);
 
   return (
     <motion.div
@@ -208,13 +215,20 @@ export function MainMenu({
       />
 
       <Dialog open={showStats} onOpenChange={setShowStats}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-2xl mb-4">
               {t('statistics', selectedLanguage)}
             </DialogTitle>
           </DialogHeader>
-          <DetailedStats stats={infiniteStats} language={selectedLanguage} />
+          <DetailedStats
+            allStats={{
+              infinite: infiniteStats,
+              wordOfTheDay: wordOfTheDayStats,
+              todaysSet: todaysSetStats,
+            }}
+            language={selectedLanguage}
+          />
         </DialogContent>
       </Dialog>
     </motion.div>

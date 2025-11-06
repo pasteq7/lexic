@@ -1,3 +1,4 @@
+// lib/stats/statsManager.ts
 import type { GameStats, GameResult, GameMode } from '@/lib/types/game';
 import { Language } from '@/lib/types/i18n';
 import { MAX_RECENT_GAMES } from '@/lib/game/constants';
@@ -7,7 +8,7 @@ const createInitialStats = (): GameStats => ({
   gamesWon: 0,
   currentStreak: 0,
   maxStreak: 0,
-  lastPlayed: Date.now(),
+  lastPlayed: 0,
   lastCompleted: 0,
   guessDistribution: {},
   recentGames: []
@@ -15,6 +16,13 @@ const createInitialStats = (): GameStats => ({
 
 type AllGameStats = Record<GameMode, GameStats>;
 type LanguageStats = Record<Language, AllGameStats>;
+
+// Helper to get the number of days since the Unix epoch, in UTC.
+// This is a reliable way to compare dates across timezones.
+const getUTCDayNumber = (timestamp: number): number => {
+  const date = new Date(timestamp);
+  return Math.floor(date.getTime() / (1000 * 60 * 60 * 24));
+};
 
 export class StatsManager {
   private readonly STORAGE_KEY = 'lexic-stats-v2';
@@ -67,15 +75,14 @@ export class StatsManager {
   }
 
   private validateStats(stats: Partial<GameStats>): GameStats {
-    const now = Date.now();
     return {
       gamesPlayed: Math.max(0, Number(stats.gamesPlayed) || 0),
       gamesWon: Math.max(0, Number(stats.gamesWon) || 0),
       currentStreak: Math.max(0, Number(stats.currentStreak) || 0),
       maxStreak: Math.max(0, Number(stats.maxStreak) || 0),
-      lastPlayed: Number(stats.lastPlayed) || now,
+      lastPlayed: Number(stats.lastPlayed) || 0,
       lastCompleted: Number(stats.lastCompleted) || 0,
-      guessDistribution: { ...stats.guessDistribution },
+      guessDistribution: stats.guessDistribution && typeof stats.guessDistribution === 'object' ? stats.guessDistribution : {},
       recentGames: Array.isArray(stats.recentGames) 
         ? stats.recentGames.slice(0, MAX_RECENT_GAMES)
         : []
@@ -110,22 +117,20 @@ export class StatsManager {
     const currentStats = this.getStats(gameMode, language);
     
     const isDailyMode = gameMode === 'wordOfTheDay' || gameMode === 'todaysSet';
-    const lastCompletionDate = new Date(currentStats.lastCompleted);
-    const today = new Date(now);
-    const yesterday = new Date(now);
-    yesterday.setDate(today.getDate() - 1);
-
-    const isSameDayCompletion = lastCompletionDate.toDateString() === today.toDateString();
-    if (isDailyMode && result.won && isSameDayCompletion) {
-       return currentStats;
+    
+    // For daily modes, prevent re-submission of stats for the same day.
+    if (isDailyMode && getUTCDayNumber(currentStats.lastCompleted) === getUTCDayNumber(now)) {
+      return currentStats;
     }
 
-    const isContinuedStreak = lastCompletionDate.toDateString() === yesterday.toDateString();
-    
     let newCurrentStreak = currentStats.currentStreak;
     if (result.won) {
+        // Check if the last completion was yesterday for a continued streak
+        const yesterday = getUTCDayNumber(now) - 1;
+        const lastCompletionDay = getUTCDayNumber(currentStats.lastCompleted);
+
         if (isDailyMode) {
-            newCurrentStreak = isContinuedStreak ? newCurrentStreak + 1 : 1;
+             newCurrentStreak = (lastCompletionDay === yesterday) ? newCurrentStreak + 1 : 1;
         } else {
             newCurrentStreak += 1;
         }
@@ -139,6 +144,7 @@ export class StatsManager {
       gamesWon: result.won ? currentStats.gamesWon + 1 : currentStats.gamesWon,
       currentStreak: newCurrentStreak,
       lastPlayed: now,
+      // For daily modes, only update lastCompleted on a win.
       lastCompleted: result.won ? now : currentStats.lastCompleted,
       guessDistribution: result.won ? {
         ...currentStats.guessDistribution,
@@ -176,6 +182,12 @@ export class StatsManager {
     try {
       localStorage.removeItem(this.STORAGE_KEY);
       this.stats = this.loadStats();
+      // Notify all listeners that stats have been reset
+      (Object.keys(this.stats) as Language[]).forEach(lang => {
+        (Object.keys(this.stats[lang]) as GameMode[]).forEach(mode => {
+          this.notifyListeners(mode, lang);
+        });
+      });
     } catch (error) {
       console.error('Failed to clear game data:', error);
       throw new Error('Failed to clear game data');

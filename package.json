@@ -12,6 +12,7 @@
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-slot": "^1.1.0",
+    "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-toast": "^1.2.2",
     "@shadcn/ui": "^0.0.4",
     "an-array-of-english-words": "^2.0.0",
@@ -23,12 +24,8 @@
     "next": "^14.2.16",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "react-tsparticles": "^2.12.2",
-    "sonner": "^1.7.0",
     "tailwind-merge": "^2.5.4",
-    "tailwindcss-animate": "^1.0.7",
-    "tsparticles": "^3.9.1",
-    "tsparticles-slim": "^2.12.0"
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@types/node": "^20",

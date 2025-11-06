@@ -1,4 +1,5 @@
 // components/game/GameBoard.tsx
+import { AnimatePresence } from 'framer-motion';
 import { Board } from './Board';
 import Keyboard from './Keyboard';
 import { ReviewCard } from './ReviewCard';
@@ -55,39 +56,40 @@ export function GameBoard({
   }
 
   return (
-    <div className="flex flex-col lg:flex-row items-center justify-center w-full gap-8">
-      <div className="relative flex flex-col justify-center w-full max-w-[480px]">
-        <div className="w-full mx-auto flex flex-col items-center">
-          <Board
-            guesses={guesses}
-            currentGuess={currentGuess}
-            wordLength={wordLength}
-            shake={shake}
-            initialStates={initialStates}
-          />
-          <div className="w-full pb-4">
-            <Keyboard
-              onKey={onKeyPress}
-              keyStates={keyStates}
-              keyboardLayout={keyboardLayout}
-              isSubmitting={isSubmitting}
-            />
-          </div>
-        </div>
+    <div className="relative flex-grow flex flex-col items-center justify-center w-full max-w-lg mx-auto p-4">
+      {/* Game Area */}
+      <div className="w-full flex flex-col items-center justify-center gap-4">
+        <Board
+          guesses={guesses}
+          currentGuess={currentGuess}
+          wordLength={wordLength}
+          shake={shake}
+          initialStates={initialStates}
+        />
+        <Keyboard
+          onKey={onKeyPress}
+          keyStates={keyStates}
+          keyboardLayout={keyboardLayout}
+          isSubmitting={isSubmitting}
+        />
       </div>
 
-      {showStats && (
-        <ReviewCard
-          stats={stats}
-          gameOver={gameOver}
-          guesses={guesses}
-          onNewGame={onNewGame}
-          revealedAnswer={revealedAnswer}
-          language={language}
-          gameMode={gameMode}
-          className="w-full max-w-md"
-        />
-      )}
+      {/* Review Card Overlay */}
+      <AnimatePresence>
+        {showStats && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center">
+            <ReviewCard
+              stats={stats}
+              gameOver={gameOver}
+              guesses={guesses}
+              onNewGame={onNewGame}
+              revealedAnswer={revealedAnswer}
+              language={language}
+              gameMode={gameMode}
+            />
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
