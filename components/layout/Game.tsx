@@ -14,13 +14,13 @@ import { Card } from '../ui/card';
 import { t } from '@/lib/i18n/translations';
 import { Language } from '@/lib/types/i18n';
 import { GameMode, LetterState } from '@/lib/types/game';
-import { 
-  loadDailyGameState, 
-  saveDailyGameState, 
-  loadLanguagePreference, 
+import {
+  loadDailyGameState,
+  saveDailyGameState,
+  loadLanguagePreference,
   saveLanguagePreference,
   loadGameState,
-  saveGameState 
+  saveGameState
 } from '@/lib/utils/storage';
 import { KeyboardLayout } from '@/lib/types/keyboard';
 import { getKeyboardState } from '@/lib/utils/keyboard';
@@ -30,7 +30,7 @@ export function Game() {
   const [showMenu, setShowMenu] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showReviewCard, setShowReviewCard] = useState(false);
-  
+
   // Settings
   const [language, setLanguage] = useState<Language>(() => loadLanguagePreference());
   const [keyboardLayout, setKeyboardLayout] = useState<KeyboardLayout>(() => {
@@ -39,25 +39,25 @@ export function Game() {
   });
 
   // Game Engine
-  const { 
-    state, 
-    newGame, 
-    submitGuess, 
-    updateCurrentGuess, 
-    loadInProgressGame, 
+  const {
+    state,
+    newGame,
+    submitGuess,
+    updateCurrentGuess,
+    loadInProgressGame,
     resetGame,
-    clearToast 
+    clearToast
   } = useGameEngine();
 
   const { toast } = useToast();
-  const { stats } = useGameStats({ 
-    gameMode: state.gameMode, 
-    language: state.language 
+  const { stats, updateGameResult } = useGameStats({
+    gameMode: state.gameMode,
+    language: state.language
   });
 
   // Compute keyboard states from guesses
-  const keyStates = useMemo(() => 
-    getKeyboardState(state.guesses), 
+  const keyStates = useMemo(() =>
+    getKeyboardState(state.guesses),
     [state.guesses]
   );
 
@@ -75,7 +75,7 @@ export function Game() {
   const handleLanguageChange = useCallback((newLang: Language) => {
     setLanguage(newLang);
     saveLanguagePreference(newLang);
-    
+
     // Auto-switch keyboard layout if user hasn't manually set one
     const userLayout = loadGameState<KeyboardLayout | null>('keyboardLayout', null);
     if (!userLayout) {
@@ -94,9 +94,9 @@ export function Game() {
     setShowReviewCard(false);
     setShowMenu(false);
     setIsPlaying(true);
-    
+
     const result = await newGame({ gameMode: mode, language });
-    
+
     if (result.success) {
       // Check for saved progress in daily modes
       if (mode === 'wordOfTheDay' || mode === 'todaysSet') {
@@ -130,19 +130,19 @@ export function Game() {
           submitGuess();
         }
         break;
-        
+
       case 'backspace':
         // Prevent deleting first letter
         if (state.currentGuess.length > state.firstLetter.length) {
           updateCurrentGuess(state.currentGuess.slice(0, -1));
         }
         break;
-        
+
       default:
         // Only accept valid letters
         if (
-          key.length === 1 && 
-          /^[a-zàâäéèêëîïôöùûüÿçæœ]$/i.test(key) && 
+          key.length === 1 &&
+          /^[a-zàâäéèêëîïôöùûüÿçæœ]$/i.test(key) &&
           state.currentGuess.length < state.wordLength
         ) {
           updateCurrentGuess(state.currentGuess + normalizedKey);
@@ -169,7 +169,7 @@ export function Game() {
       if (!isPlaying) return;
       handleKeyPress(event.key);
     };
-    
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isPlaying, handleKeyPress]);
@@ -189,9 +189,17 @@ export function Game() {
   // Handle game over
   useEffect(() => {
     if (state.gameOver && state.revealedAnswer) {
-      const isWon = state.guesses.length > 0 && 
+      const isWon = state.guesses.length > 0 &&
                     state.guesses[state.guesses.length - 1].isCorrect;
-      
+
+      // **FIX: Update stats on game over**
+      updateGameResult({
+        won: isWon,
+        numGuesses: state.guesses.length,
+        word: state.revealedAnswer,
+        timestamp: Date.now()
+      });
+
       // Show toast
       if (isWon) {
         toast({
@@ -213,13 +221,13 @@ export function Game() {
         setShowReviewCard(true);
       }, 1500);
     }
-  }, [state.gameOver, state.revealedAnswer, state.guesses, language, toast]);
+  }, [state.gameOver, state.revealedAnswer, state.guesses, language, toast, updateGameResult]);
 
   // Auto-save daily game progress
   useEffect(() => {
     if (
-      isPlaying && 
-      !state.gameOver && 
+      isPlaying &&
+      !state.gameOver &&
       state.guesses.length > 0 &&
       (state.gameMode === 'wordOfTheDay' || state.gameMode === 'todaysSet')
     ) {
@@ -265,7 +273,7 @@ export function Game() {
             </Button>
           </div>
         )}
-        
+
         {isPlaying && (
           <Card className="bg-transparent backdrop-blur-xs shadow-none border-none flex-1 flex items-center justify-center mx-auto max-w-2xl px-4">
             <GameBoard
