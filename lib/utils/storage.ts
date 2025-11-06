@@ -1,3 +1,4 @@
+// lib/utils/storage.ts
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { Language } from '@/lib/types/i18n';
@@ -31,18 +32,24 @@ export function loadGameState<T>(key: string, defaultValue: T): T {
   }
 }
 
+// NEW: Helper to get a consistent UTC date key (YYYY-MM-DD)
+function getUtcDateKey(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export interface DailyGameState {
   date: string;
   guesses: GuessResult[];
   revealedAnswer: string | null;
 }
 
-export function saveDailyGameState(gameMode: GameMode, language: Language, state: DailyGameState): void {
+export function saveDailyGameState(gameMode: GameMode, language: Language, state: Omit<DailyGameState, 'date'>): void {
   if (typeof window === 'undefined' || gameMode === 'infinite') return;
   
   const key = `lexic-daily-game-${gameMode}-${language}`;
+  const dataToSave = { ...state, date: getUtcDateKey() };
   try {
-    window.localStorage.setItem(key, JSON.stringify(state));
+    window.localStorage.setItem(key, JSON.stringify(dataToSave));
   } catch (error) {
     console.error(`Failed to save daily game state for ${gameMode} in ${language}:`, error);
   }
@@ -54,7 +61,16 @@ export function loadDailyGameState(gameMode: GameMode, language: Language): Dail
   const key = `lexic-daily-game-${gameMode}-${language}`;
   try {
     const saved = window.localStorage.getItem(key);
-    return saved ? JSON.parse(saved) as DailyGameState : null;
+    if (!saved) return null;
+
+    const parsed = JSON.parse(saved) as DailyGameState;
+    // CRITICAL: Check if the saved date is today's UTC date
+    if (parsed.date === getUtcDateKey()) {
+      return parsed;
+    }
+    // If not, the data is stale, so we clear it and return null
+    clearDailyGameState(gameMode, language);
+    return null;
   } catch (error)    {
     console.error(`Failed to load daily game state for ${gameMode} in ${language}:`, error);
     return null;
@@ -72,14 +88,18 @@ export function clearDailyGameState(gameMode: GameMode, language: Language): voi
   }
 }
 
-
-// Add to lib/utils/storage.ts
 export function clearAllGameData(): void {
   if (typeof window === 'undefined') return;
   
   try {
-    // Clear all localStorage data
+    const lang = loadLanguagePreference();
+    const keyboardLayout = loadGameState('keyboardLayout', null);
+
     localStorage.clear();
+    
+    // Restore essential preferences
+    saveLanguagePreference(lang);
+    if (keyboardLayout) saveGameState('keyboardLayout', keyboardLayout);
     
     window.dispatchEvent(new Event('storage'));
   } catch (error) {
@@ -89,9 +109,6 @@ export function clearAllGameData(): void {
 }
 
 const STORAGE_KEYS = {
-  STATS: 'lexic-stats',
-  CURRENT_GAME: 'lexic-current-game',
-  KEYBOARD: 'keyboard-layout',
   LANGUAGE: 'language-preference'
 } as const;
 
@@ -99,8 +116,6 @@ export function saveLanguagePreference(language: Language): void {
   if (typeof window !== 'undefined') {
     try {
       localStorage.setItem(STORAGE_KEYS.LANGUAGE, language);
-      // Remove old key if it exists
-      localStorage.removeItem('language');
     } catch (error) {
       console.error('Failed to save language preference:', error);
     }
@@ -109,22 +124,8 @@ export function saveLanguagePreference(language: Language): void {
 
 export function loadLanguagePreference(): Language {
   if (typeof window === 'undefined') return 'en';
-  
   try {
-    // Try to get from new key first
-    let saved = localStorage.getItem(STORAGE_KEYS.LANGUAGE);
-    
-    // If not found, check old key and migrate
-    if (!saved) {
-      const oldSaved = localStorage.getItem('language');
-      if (oldSaved) {
-        saved = oldSaved;
-        // Migrate to new key
-        localStorage.setItem(STORAGE_KEYS.LANGUAGE, oldSaved);
-        localStorage.removeItem('language');
-      }
-    }
-    
+    const saved = localStorage.getItem(STORAGE_KEYS.LANGUAGE);
     return (saved === 'fr' || saved === 'en') ? saved : 'en';
   } catch (error) {
     console.error('Failed to load language preference:', error);

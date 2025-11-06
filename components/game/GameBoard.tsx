@@ -1,3 +1,4 @@
+// components/game/GameBoard.tsx
 import { Board } from './Board';
 import Keyboard from './Keyboard';
 import { ReviewCard } from './ReviewCard';

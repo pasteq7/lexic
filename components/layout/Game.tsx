@@ -1,10 +1,11 @@
+// components/layout/Game.tsx
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { MainMenu } from '@/components/layout/MainMenu';
 import { GameBoard } from '@/components/game/GameBoard';
-import { useGameLogic } from '@/hooks/game/useGameLogic';
+import { useGameEngine } from '@/hooks/game/useGameEngine';
 import { useGameEffects } from '@/hooks/game/useGameEffects';
 import { useGameStats } from '@/hooks/stats/useGameStats';
 import { useToast } from '@/hooks/use-toast';
@@ -12,172 +13,95 @@ import { Button } from "@/components/ui/button";
 import { Home } from 'lucide-react';
 import { Card } from '../ui/card';
 import { t } from '@/lib/i18n/translations';
-import { Language, TranslationKey } from '@/lib/types/i18n';
+import { Language } from '@/lib/types/i18n';
 import { GameMode, LetterState } from '@/lib/types/game';
-import { loadGameState, saveGameState, saveDailyGameState, loadDailyGameState, clearDailyGameState, loadLanguagePreference, saveLanguagePreference } from '@/lib/utils/storage';
+import { loadGameState, saveGameState, saveDailyGameState, loadDailyGameState, loadLanguagePreference, saveLanguagePreference } from '@/lib/utils/storage';
 import { KeyboardLayout, KeyState } from '@/lib/types/keyboard';
 import { getKeyboardState } from '@/lib/utils/keyboard';
 
 export function Game() {
   const [showMenu, setShowMenu] = useState(true);
-  const [language, setLanguage] = useState<Language>(() => loadLanguagePreference());
   const [isPlaying, setIsPlaying] = useState(false);
-  const [gameMode, setGameMode] = useState<GameMode>('infinite');
-  const [keyboardLayout, setKeyboardLayout] = useState<KeyboardLayout>(() => {
-    const userSavedLayout = loadGameState<KeyboardLayout | null>('keyboardLayout', null);
-    if (userSavedLayout) return userSavedLayout;
-    const initialLanguage = loadLanguagePreference();
-    return initialLanguage === 'fr' ? 'azerty' : 'qwerty';
-  });
-  const [shake, setShake] = useState(false);
   const [showReviewCard, setShowReviewCard] = useState(false);
   const [keyStates, setKeyStates] = useState<Record<string, KeyState>>({});
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  
+  const { state, newGame, submitGuess, updateCurrentGuess, loadInProgressGame, resetGame, resetShake, clearToast } = useGameEngine();
+  const { language, gameMode, guesses, gameOver, revealedAnswer } = state;
 
   const { toast } = useToast();
   const { stats } = useGameStats({ gameMode, language });
 
-  const {
-    wordLength,
-    guesses,
-    currentGuess,
-    gameOver,
-    isSubmitting,
-    isLoading,
-    revealedAnswer,
-    submitGuess,
-    updateCurrentGuess,
-    newGame,
-    resetGame,
-    loadInProgressGame,
-  } = useGameLogic({ 
-    language,
-    onFirstLetterDeleteAttempt: () => {
-      setShake(true);
-      setTimeout(() => setShake(false), 600);
-    }
+  const [keyboardLayout, setKeyboardLayout] = useState<KeyboardLayout>(() => {
+    const saved = loadGameState<KeyboardLayout | null>('keyboardLayout', null);
+    if (saved) return saved;
+    return loadLanguagePreference() === 'fr' ? 'azerty' : 'qwerty';
   });
 
   const handleStartGame = useCallback(async (mode: GameMode) => {
-    setGameMode(mode);
     setShowReviewCard(false);
     setShowMenu(false);
     setIsPlaying(true);
     
-    const isDailyMode = mode === 'wordOfTheDay' || mode === 'todaysSet';
-
-    if (isDailyMode) {
-      const savedState = loadDailyGameState(mode, language);
-      const today = new Date().toDateString();
-
-      if (savedState && savedState.date === today) {
-        const result = await newGame({ gameMode: mode });
-        if (result.success) {
-          loadInProgressGame(savedState);
-        } else {
-          toast({
-            title: t('error', language),
-            description: result.error || t('failedToStart', language),
-            duration: 2000
-          });
-        }
-        return;
-      } else if (savedState) {
-        clearDailyGameState(mode, language);
-      }
+    const savedState = loadDailyGameState(mode, language);
+    const result = await newGame({ gameMode: mode, language });
+    
+    if (result.success && savedState) {
+        loadInProgressGame(savedState, { wordLength: result.length, firstLetter: result.firstLetter });
     }
-
-    const result = await newGame({ gameMode: mode });
-    if (!result.success) {
-      toast({
-        title: t('error', language),
-        description: result.error || t('failedToStart', language),
-        duration: 2000
-      });
-    }
-  }, [newGame, language, toast, loadInProgressGame]);
+  }, [newGame, language, loadInProgressGame]);
 
   useEffect(() => {
-    if (!isInitialLoad) return;
-
-    const attemptResume = async () => {
-        const today = new Date().toDateString();
-        const wotdState = loadDailyGameState('wordOfTheDay', language);
-        if (wotdState && wotdState.date === today && !wotdState.revealedAnswer) {
-            await handleStartGame('wordOfTheDay');
-            return;
-        }
-
-        const todaysSetState = loadDailyGameState('todaysSet', language);
-        if (todaysSetState && todaysSetState.date === today && !todaysSetState.revealedAnswer) {
-            await handleStartGame('todaysSet');
-        }
-    };
-
-    attemptResume().finally(() => {
-        setIsInitialLoad(false);
-    });
-  }, [isInitialLoad, language, handleStartGame]);
-
-  const handleSubmitGuess = useCallback(async () => {
-    const result = await submitGuess(currentGuess);
-    if (!result.isValid && result.message) {
-      setShake(true);
-      setTimeout(() => setShake(false), 600);
+    if (state.toast) {
       toast({
-        title: t(result.message as TranslationKey, language),
-        description: result.message === 'wordLength' ? t('wordLength', language, { length: wordLength }) : undefined,
+        title: t(state.toast.messageKey, language, state.toast.params),
+        variant: state.toast.type,
         duration: 2000,
-        variant: 'destructive'
       });
+      clearToast();
     }
-  }, [submitGuess, currentGuess, language, toast, wordLength]);
+  }, [state.toast, language, toast, clearToast]);
 
+  useEffect(() => {
+    if (state.shake) {
+      const timer = setTimeout(() => resetShake(), 600);
+      return () => clearTimeout(timer);
+    }
+  }, [state.shake, resetShake]);
+  
   const handleKeyPress = useCallback((key: string) => {
     if (gameOver && key.toLowerCase() === 'enter' && gameMode === 'infinite') {
       handleStartGame(gameMode);
       return;
     }
 
-    if (!isPlaying || isSubmitting || isLoading) return;
+    if (!isPlaying || state.isSubmitting || state.isLoading) return;
 
     switch (key.toLowerCase()) {
       case 'enter':
-        if (currentGuess.length === wordLength) {
-          handleSubmitGuess();
+        if (state.currentGuess.length === state.wordLength) {
+          submitGuess();
         }
         break;
       case 'backspace':
-        updateCurrentGuess(currentGuess.slice(0, -1));
+        updateCurrentGuess(state.currentGuess.slice(0, -1));
         break;
       default:
         if (
           key.length === 1 && 
           /^[a-zàâäéèêëîïôöùûüÿçæœ]$/i.test(key) && 
-          currentGuess.length < wordLength
+          state.currentGuess.length < state.wordLength
         ) {
-          updateCurrentGuess(currentGuess + key.toLowerCase());
+          updateCurrentGuess(state.currentGuess + key.toLowerCase());
         }
         break;
     }
   }, [
-    gameOver,
-    handleStartGame,
-    isPlaying,
-    isSubmitting,
-    currentGuess,
-    wordLength,
-    handleSubmitGuess,
-    updateCurrentGuess,
-    gameMode,
-    isLoading
+    gameOver, gameMode, isPlaying, state.isSubmitting, state.isLoading, state.currentGuess, 
+    state.wordLength, handleStartGame, submitGuess, updateCurrentGuess
   ]);
 
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      handleKeyPress(event.key);
-    };
-
+    const handleKeyDown = (event: KeyboardEvent) => handleKeyPress(event.key);
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyPress]);
@@ -193,23 +117,18 @@ export function Game() {
   });
 
   const handleLanguageChange = (newLang: Language) => {
-    setLanguage(newLang);
+    // This is managed by the engine now, but we need a way to set it from the menu
+    // A simple solution is to just update the preference and let the engine pick it up on next game start.
     saveLanguagePreference(newLang);
-    
-    const userSavedLayout = loadGameState<KeyboardLayout | null>('keyboardLayout', null);
+    // For immediate UI update in the menu, we can still hold a local state for it
     if (!userSavedLayout) {
       setKeyboardLayout(newLang === 'fr' ? 'azerty' : 'qwerty');
     }
   };
 
   const handleHome = () => {
-    const isDailyMode = gameMode === 'wordOfTheDay' || gameMode === 'todaysSet';
-    if (isPlaying && isDailyMode && !gameOver) {
-      saveDailyGameState(gameMode, language, {
-        date: new Date().toDateString(),
-        guesses: guesses,
-        revealedAnswer: revealedAnswer,
-      });
+    if (isPlaying && !gameOver && (gameMode === 'wordOfTheDay' || gameMode === 'todaysSet')) {
+      saveDailyGameState(gameMode, language, { guesses, revealedAnswer });
     }
     setShowMenu(true);
     setIsPlaying(false);
@@ -220,14 +139,15 @@ export function Game() {
     setKeyboardLayout(layout);
     saveGameState('keyboardLayout', layout);
   };
-
+  
+  const userSavedLayout = loadGameState<KeyboardLayout | null>('keyboardLayout', null);
+  
   useEffect(() => {
-    const newKeyStates = getKeyboardState(guesses);
-    setKeyStates(newKeyStates);
+    setKeyStates(getKeyboardState(guesses));
   }, [guesses]);
 
-  const initialBoardStates: LetterState[] = Array(wordLength).fill('empty');
-  if (wordLength > 0 && !gameOver) {
+  const initialBoardStates: LetterState[] = Array(state.wordLength).fill('empty');
+  if (state.wordLength > 0 && !gameOver) {
       initialBoardStates[0] = 'correct';
   }
 
@@ -263,20 +183,20 @@ export function Game() {
           <Card className="bg-transparent backdrop-blur-xs shadow-none border-none flex-1 flex items-center justify-center mx-auto max-w-2xl px-4">
             <GameBoard
               guesses={guesses}
-              currentGuess={currentGuess}
-              wordLength={wordLength}
+              currentGuess={state.currentGuess}
+              wordLength={state.wordLength}
+              shake={state.shake}
               showStats={showReviewCard}
+              stats={stats}
               gameOver={gameOver}
+              keyStates={keyStates}
               onKeyPress={handleKeyPress}
               onNewGame={() => handleStartGame(gameMode)}
               keyboardLayout={keyboardLayout}
               revealedAnswer={revealedAnswer}
               language={language}
-              shake={shake}
-              keyStates={keyStates}
-              stats={stats}
-              isSubmitting={isSubmitting}
-              isLoading={isLoading}
+              isSubmitting={state.isSubmitting}
+              isLoading={state.isLoading}
               gameMode={gameMode}
               initialStates={initialBoardStates}
             />
