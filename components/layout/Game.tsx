@@ -33,7 +33,7 @@ export function Game() {
     return initialLanguage === 'fr' ? 'azerty' : 'qwerty';
   });
   const [shake, setShake] = useState(false);
-  const [showStatsCard, setShowStatsCard] = useState(false);
+  const [showReviewCard, setShowReviewCard] = useState(false);
   const [keyStates, setKeyStates] = useState<Record<string, KeyState>>({});
 
   const { toast } = useToast();
@@ -62,7 +62,7 @@ export function Game() {
 
   const handleStartGame = useCallback(async (mode: GameMode) => {
     setGameMode(mode);
-    setShowStatsCard(false);
+    setShowReviewCard(false);
     setShowMenu(false);
     setIsPlaying(true);
     
@@ -166,7 +166,7 @@ export function Game() {
     gameOver,
     guesses,
     revealedAnswer,
-    onShowStats: setShowStatsCard,
+    onShowStats: setShowReviewCard,
     gameMode,
   });
 
@@ -251,7 +251,7 @@ export function Game() {
               guesses={guesses}
               currentGuess={currentGuess}
               wordLength={wordLength}
-              showStats={showStatsCard}
+              showStats={showReviewCard}
               gameOver={gameOver}
               onKeyPress={handleKeyPress}
               onNewGame={() => handleStartGame(gameMode)}

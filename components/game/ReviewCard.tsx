@@ -9,7 +9,7 @@ import { Language } from '@/lib/types/i18n';
 import { ANIMATIONS, STATS_ANIMATIONS } from '@/lib/utils/animations';
 import { Keyboard } from "lucide-react";
 
-interface StatsCardProps {
+interface ReviewCardProps {
   stats: GameStats;
   gameOver: boolean;
   guesses: GuessResult[];
@@ -44,7 +44,7 @@ const Stats = React.memo(({
 
 Stats.displayName = 'Stats';
 
-export function StatsCard({ 
+export function ReviewCard({ 
   stats, 
   gameOver, 
   guesses, 
@@ -52,7 +52,7 @@ export function StatsCard({
   revealedAnswer,
   language,
   className 
-}: StatsCardProps) {
+}: ReviewCardProps) {
   const isWon = guesses.length > 0 && guesses[guesses.length - 1].isCorrect;
   const winPercentage = stats.gamesPlayed > 0 
     ? Math.round((stats.gamesWon / stats.gamesPlayed) * 100)

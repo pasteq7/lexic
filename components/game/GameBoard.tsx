@@ -1,6 +1,6 @@
 import { Board } from './Board';
 import Keyboard from './Keyboard';
-import { StatsCard } from './StatsCard';
+import { ReviewCard } from './ReviewCard';
 import { GuessResult, type GameStats, GameMode, LetterState } from '@/lib/types/game';
 import { type KeyState, KeyboardLayout } from '@/lib/types/keyboard';
 import { type Language } from '@/lib/types/i18n';
@@ -73,7 +73,7 @@ export function GameBoard({
       </div>
 
       {showStats && (
-        <StatsCard
+        <ReviewCard
           stats={stats}
           gameOver={gameOver}
           guesses={guesses}
