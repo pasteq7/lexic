@@ -10,8 +10,8 @@ interface CellProps {
   isActive?: boolean;
   delay?: number;
   size?: 'normal' | 'large';
-  isLocked?: boolean; // NEW: For first letter protection
-  isPulsing?: boolean; // NEW: For delete attempt feedback
+  isLocked?: boolean;
+  isPulsing?: boolean;
 }
 
 const cellStateStyles = {
@@ -21,9 +21,9 @@ const cellStateStyles = {
   empty: 'bg-transparent border-primary/30'
 } as const;
 
-export function Cell({ 
-  letter, 
-  state, 
+export function Cell({
+  letter,
+  state,
   isActive = false,
   delay = 0,
   size = 'normal',
@@ -38,40 +38,39 @@ export function Cell({
     "transition-all duration-300",
     "text-foreground",
     size === 'normal' ? "w-14 h-14 text-2xl" : "w-20 h-20 text-4xl",
-    state === 'empty' && isActive && letter 
-      ? 'border-primary shadow-md scale-105' 
+    state === 'empty' && isActive && letter
+      ? 'border-primary shadow-md scale-105'
       : 'border-primary/30',
     cellStateStyles[state],
     isPulsing && 'animate-pulse'
   );
 
-  // Bounce effect when letter is placed
-  const placementAnimation = letter && state === 'empty' 
-    ? { scale: [0.8, 1.1, 1], transition: { duration: 0.3, ease: 'easeOut' } }
-    : {};
-
-  // Flip animation for revealed states
-  const revealAnimation = state !== 'empty' 
-    ? {
-        rotateX: [0, 90, 0],
-        transition: {
-          duration: 0.6,
-          delay: delay * 0.1,
-          ease: 'easeInOut'
-        }
+  const variants = {
+    empty: { scale: 1, rotateX: 0 },
+    placed: { scale: [1, 1.1, 1], transition: { duration: 0.2 } },
+    revealed: {
+      rotateX: 360,
+      transition: {
+        duration: 0.8,
+        delay: delay * 0.1,
+        ease: 'easeInOut'
       }
-    : {};
+    }
+  };
+
+  const getAnimationState = () => {
+    if (state !== 'empty') return 'revealed';
+    if (letter) return 'placed';
+    return 'empty';
+  };
 
   return (
-    <motion.div 
+    <motion.div
       className={baseStyles}
-      animate={{
-        ...placementAnimation,
-        ...revealAnimation,
-      }}
+      variants={variants}
+      animate={getAnimationState()}
       whileHover={isActive ? { scale: 1.05 } : {}}
     >
-      {/* Lock Icon for Protected First Letter */}
       {isLocked && (
         <motion.div
           className="absolute -top-1 -right-1 bg-primary/20 rounded-full p-0.5"
@@ -83,7 +82,6 @@ export function Cell({
         </motion.div>
       )}
       
-      {/* Letter Display */}
       <motion.span
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

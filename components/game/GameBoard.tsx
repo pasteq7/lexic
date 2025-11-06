@@ -23,7 +23,7 @@ interface GameBoardProps {
   isSubmitting: boolean;
   isLoading: boolean;
   gameMode: GameMode;
-  initialStates?: LetterState[]; // This line was missing
+  initialStates?: LetterState[];
 }
 
 export function GameBoard({
@@ -43,7 +43,7 @@ export function GameBoard({
   isSubmitting,
   isLoading,
   gameMode,
-  initialStates, 
+  initialStates,
 }: GameBoardProps) {
   if (isLoading) {
     return (
@@ -54,22 +54,24 @@ export function GameBoard({
   }
 
   return (
-    <div className="relative flex flex-col justify-center w-full">
-      <div className="w-full max-w-[480px] mx-auto flex flex-col items-center">
-        <Board
-          guesses={guesses}
-          currentGuess={currentGuess}
-          wordLength={wordLength}
-          shake={shake}
-          initialStates={initialStates} // And passed down
-        />
-        <div className="w-full pb-4">
-          <Keyboard
-            onKey={onKeyPress}
-            keyStates={keyStates}
-            keyboardLayout={keyboardLayout}
-            isSubmitting={isSubmitting}
+    <div className="flex flex-col lg:flex-row items-center justify-center w-full gap-8">
+      <div className="relative flex flex-col justify-center w-full max-w-[480px]">
+        <div className="w-full mx-auto flex flex-col items-center">
+          <Board
+            guesses={guesses}
+            currentGuess={currentGuess}
+            wordLength={wordLength}
+            shake={shake}
+            initialStates={initialStates}
           />
+          <div className="w-full pb-4">
+            <Keyboard
+              onKey={onKeyPress}
+              keyStates={keyStates}
+              keyboardLayout={keyboardLayout}
+              isSubmitting={isSubmitting}
+            />
+          </div>
         </div>
       </div>
 
@@ -82,7 +84,7 @@ export function GameBoard({
           revealedAnswer={revealedAnswer}
           language={language}
           gameMode={gameMode}
-          className="lg:absolute lg:top-0 lg:left-full lg:ml-4 mt-4 lg:mt-0 mx-auto"
+          className="w-full max-w-md"
         />
       )}
     </div>

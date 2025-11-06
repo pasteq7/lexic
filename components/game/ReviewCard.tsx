@@ -20,15 +20,15 @@ interface ReviewCardProps {
   gameMode: GameMode;
 }
 
-const Stats = React.memo(({ 
-  label, 
-  value, 
-}: { 
-  label: string; 
-  value: number; 
+const Stats = React.memo(({
+  label,
+  value,
+}: {
+  label: string;
+  value: number;
   highlight?: boolean;
 }) => (
-  <motion.div 
+  <motion.div
     className={cn(
       "text-center p-4 rounded-lg",
     )}
@@ -45,18 +45,18 @@ const Stats = React.memo(({
 
 Stats.displayName = 'Stats';
 
-export function ReviewCard({ 
-  stats, 
-  gameOver, 
-  guesses, 
-  onNewGame, 
+export function ReviewCard({
+  stats,
+  gameOver,
+  guesses,
+  onNewGame,
   revealedAnswer,
   language,
   className,
   gameMode
 }: ReviewCardProps) {
   const isWon = guesses.length > 0 && guesses[guesses.length - 1].isCorrect;
-  const winPercentage = stats.gamesPlayed > 0 
+  const winPercentage = stats.gamesPlayed > 0
     ? Math.round((stats.gamesWon / stats.gamesPlayed) * 100)
     : 0;
 
@@ -72,11 +72,11 @@ export function ReviewCard({
         <motion.div
           {...ANIMATIONS.REVEAL}
           className={cn(
-            "flex items-center justify-center ",
+            "flex items-center justify-center",
             className
           )}
         >
-          <motion.div 
+          <motion.div
             className="bg-transparent p-6 max-w-2xl w-full mx-4"
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -99,23 +99,23 @@ export function ReviewCard({
             </div>
 
             <div className="grid grid-cols-2 gap-6 mb-8">
-              <Stats 
-                label={t('streak', language)} 
+              <Stats
+                label={t('streak', language)}
                 value={stats.currentStreak}
                 highlight={stats.currentStreak > 0}
               />
-              <Stats 
-                label={t('maxStreak', language)} 
+              <Stats
+                label={t('maxStreak', language)}
                 value={stats.maxStreak}
                 highlight={stats.currentStreak === stats.maxStreak && stats.maxStreak > 0}
               />
-              <Stats 
-                label={t('gamesPlayed', language)} 
-                value={stats.gamesPlayed} 
+              <Stats
+                label={t('gamesPlayed', language)}
+                value={stats.gamesPlayed}
               />
-              <Stats 
-                label={t('winPercentage', language)} 
-                value={winPercentage} 
+              <Stats
+                label={t('winPercentage', language)}
+                value={winPercentage}
               />
             </div>
             
@@ -130,7 +130,7 @@ export function ReviewCard({
                     {t('newGame', language)}
                   </Button>
                   
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 }}
