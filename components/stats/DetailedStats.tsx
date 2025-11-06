@@ -86,7 +86,7 @@ const SingleModeStats = ({ stats, language }: { stats: GameStats; language: Lang
 
 export function DetailedStats({ allStats, language }: DetailedStatsProps) {
   return (
-    <Tabs defaultValue="infinite" className="w-full">
+    <Tabs defaultValue="wordOfTheDay" className="w-full">
       <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="wordOfTheDay">{t('wordOfTheDay', language)}</TabsTrigger>
         <TabsTrigger value="todaysSet">{t('todaysSet', language)}</TabsTrigger>
