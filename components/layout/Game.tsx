@@ -212,7 +212,7 @@ export function Game() {
   const isWon = gameOver && guesses.length > 0 && guesses[guesses.length - 1].isCorrect;
 
   const initialBoardStates: LetterState[] = Array(wordLength).fill('empty');
-  if (wordLength > 0 && !isWon) {
+  if (wordLength > 0 && !gameOver) {
       initialBoardStates[0] = 'correct';
   }
 

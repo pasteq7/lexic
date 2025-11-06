@@ -28,7 +28,7 @@ const isDailyCompleted = (stats: GameStats) => {
   if (!stats || stats.lastCompleted === 0) return false;
   const lastCompletionDate = new Date(stats.lastCompleted);
   const today = new Date();
-  return lastCompletionDate.toDateString() === today.toDateString() && stats.currentStreak > 0;
+  return lastCompletionDate.toDateString() === today.toDateString();
 };
 
 export function MainMenu({ 
@@ -81,6 +81,7 @@ export function MainMenu({
               size="lg"
               className="w-full py-7 sm:py-8 text-lg sm:text-xl justify-between group hover:scale-[1.02] transition-transform"
               onClick={() => onStartGame('wordOfTheDay')}
+              disabled={wordOfTheDayCompleted}
             >
               <span className="flex items-center gap-3">
                 <Calendar className="h-6 w-6" />
@@ -100,6 +101,7 @@ export function MainMenu({
               size="lg"
               className="w-full py-7 sm:py-8 text-lg sm:text-xl justify-between group hover:scale-[1.02] transition-transform"
               onClick={() => onStartGame('todaysSet')}
+              disabled={todaysSetCompleted}
             >
               <span className="flex items-center gap-3">
                 <Sparkles className="h-6 w-6" />

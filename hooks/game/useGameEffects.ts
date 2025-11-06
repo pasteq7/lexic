@@ -40,10 +40,12 @@ export function useGameEffects({
         clearDailyGameState(gameMode);
       }
 
-      // Show stats card with delay
-      setTimeout(() => {
-        onShowStats(true);
-      }, 1500);
+      // Show stats card with delay, but not for daily wins
+      if (!isWon || gameMode === 'infinite') {
+        setTimeout(() => {
+          onShowStats(true);
+        }, 1500);
+      }
     }
 
     // Reset the flag when the game is not over
