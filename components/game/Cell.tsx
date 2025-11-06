@@ -92,15 +92,6 @@ export function Cell({
         {letter.toUpperCase()}
       </motion.span>
 
-      {/* Shine Effect on Correct Letters */}
-      {state === 'correct' && (
-        <motion.div
-          className="absolute inset-0 rounded-md bg-gradient-to-tr from-transparent via-white/20 to-transparent"
-          initial={{ x: '-100%', opacity: 0 }}
-          animate={{ x: '100%', opacity: [0, 1, 0] }}
-          transition={{ delay: delay * 0.1 + 0.6, duration: 0.8 }}
-        />
-      )}
     </motion.div>
   );
 }
