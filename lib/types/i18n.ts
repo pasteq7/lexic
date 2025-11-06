@@ -47,6 +47,7 @@ export type TranslationKey =
   | 'infinite'
   | 'wordOfTheDay'
   | 'todaysSet'
-  | 'loading';
+  | 'loading'
+  | 'firstLetterLocked';
 
 export type TranslationParams = Record<string, string | number>;

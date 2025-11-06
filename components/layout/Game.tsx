@@ -17,6 +17,7 @@ import { GameMode, LetterState } from '@/lib/types/game';
 import { loadGameState, saveGameState, saveDailyGameState, loadDailyGameState, clearDailyGameState, loadLanguagePreference, saveLanguagePreference } from '@/lib/utils/storage';
 import { KeyboardLayout, KeyState } from '@/lib/types/keyboard';
 import { getKeyboardState } from '@/lib/utils/keyboard';
+import { WinCelebration } from '@/components/game/WinCelebration';
 
 export function Game() {
   const [showMenu, setShowMenu] = useState(true);
@@ -51,8 +52,18 @@ export function Game() {
     newGame,
     resetGame,
     loadInProgressGame,
-    getGameState,
-  } = useGameLogic({ language });
+  } = useGameLogic({ 
+    language,
+    onFirstLetterDeleteAttempt: () => {
+      setShake(true);
+      setTimeout(() => setShake(false), 600);
+      toast({
+        description: t('firstLetterLocked', language),
+        variant: 'info',
+        duration: 1500,
+      });
+    }
+  });
 
   const handleStartGame = useCallback(async (mode: GameMode) => {
     setGameMode(mode);
@@ -101,7 +112,8 @@ export function Game() {
       toast({
         title: t(result.message as TranslationKey, language),
         description: result.message === 'wordLength' ? t('wordLength', language, { length: wordLength }) : undefined,
-        duration: 2000
+        duration: 2000,
+        variant: 'destructive'
       });
     }
   }, [submitGuess, currentGuess, language, toast, wordLength]);
@@ -121,9 +133,7 @@ export function Game() {
         }
         break;
       case 'backspace':
-        if (currentGuess.length > 1) {
-          updateCurrentGuess(currentGuess.slice(0, -1));
-        }
+        updateCurrentGuess(currentGuess.slice(0, -1));
         break;
       default:
         if (
@@ -199,14 +209,21 @@ export function Game() {
     setKeyStates(newKeyStates);
   }, [guesses]);
 
-  const gameState = getGameState();
+  const isWon = gameOver && guesses.length > 0 && guesses[guesses.length - 1].isCorrect;
+
   const initialBoardStates: LetterState[] = Array(wordLength).fill('empty');
-  if (wordLength > 0 && gameState !== 'won') {
+  if (wordLength > 0 && !isWon) {
       initialBoardStates[0] = 'correct';
   }
 
   return (
     <>
+      <WinCelebration
+        isWon={isWon}
+        streak={stats.currentStreak}
+        guesses={guesses.length}
+        language={language}
+      />
       <AnimatePresence>
         {showMenu && (
           <MainMenu

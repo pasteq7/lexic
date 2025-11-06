@@ -1,3 +1,4 @@
+// hooks/game/useGameLogic.ts - Enhanced version
 import { useState, useCallback} from 'react';
 import { GameState, GuessResult, GameMode } from '@/lib/types/game';
 import { Language } from '@/lib/types/i18n';
@@ -16,6 +17,7 @@ interface GameLogicState {
 interface UseGameLogicProps {
   language: Language;
   maxAttempts?: number;
+  onFirstLetterDeleteAttempt?: () => void; // NEW: Callback for UX feedback
 }
 
 interface SubmitGuessResult {
@@ -23,7 +25,11 @@ interface SubmitGuessResult {
   message?: string;
 }
 
-export function useGameLogic({ language, maxAttempts = 6 }: UseGameLogicProps) {
+export function useGameLogic({ 
+  language, 
+  maxAttempts = 6,
+  onFirstLetterDeleteAttempt 
+}: UseGameLogicProps) {
   const [state, setState] = useState<GameLogicState>({
     wordLength: 0,
     guesses: [],
@@ -157,7 +163,22 @@ export function useGameLogic({ language, maxAttempts = 6 }: UseGameLogicProps) {
     }
   }, [state.isSubmitting, state.gameOver, state.guesses.length, language, maxAttempts]);
   
-  const loadInProgressGame = useCallback((savedState: { guesses: GuessResult[], revealedAnswer: string | null }) => {
+  const updateCurrentGuess = useCallback((guess: string) => {
+    if (state.gameOver) return;
+    
+    // CRITICAL FIX: Prevent deleting first letter
+    if (guess.length === 0 || !guess.startsWith(state.firstLetter.toLowerCase())) {
+      onFirstLetterDeleteAttempt?.();
+      return;
+    }
+    
+    setState(prev => ({ ...prev, currentGuess: guess }));
+  }, [state.gameOver, state.firstLetter, onFirstLetterDeleteAttempt]);
+  
+  const loadInProgressGame = useCallback((savedState: { 
+    guesses: GuessResult[], 
+    revealedAnswer: string | null 
+  }) => {
     const { guesses, revealedAnswer } = savedState;
     const lastGuess = guesses.length > 0 ? guesses[guesses.length - 1] : null;
     const isGameOver = !!revealedAnswer || (lastGuess?.isCorrect ?? false) || guesses.length >= maxAttempts;
@@ -175,11 +196,7 @@ export function useGameLogic({ language, maxAttempts = 6 }: UseGameLogicProps) {
     ...state,
     newGame,
     submitGuess,
-    updateCurrentGuess: useCallback((guess: string) => {
-      if (!state.gameOver) {
-        setState(prev => ({ ...prev, currentGuess: guess }));
-      }
-    }, [state.gameOver]),
+    updateCurrentGuess,
     resetGame,
     loadInProgressGame,
     getGameState: useCallback((): GameState => {
