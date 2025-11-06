@@ -84,9 +84,6 @@ export function ReviewCard({
             transition={{ duration: 0.3 }}
           >
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold mb-2 text-primary">
-                {isWon ? t('youWon', language) : t('gameOver', language)}
-              </h2>
               {gameOver && !isWon && revealedAnswer && (
                 <p className="text-lg text-primary">
                   {t('answer', language, { word: revealedAnswer })}
