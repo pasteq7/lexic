@@ -48,6 +48,5 @@ export type TranslationKey =
   | 'wordOfTheDay'
   | 'todaysSet'
   | 'loading'
-  | 'firstLetterLocked';
 
 export type TranslationParams = Record<string, string | number>;
