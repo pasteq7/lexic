@@ -17,7 +17,6 @@ import { GameMode, LetterState } from '@/lib/types/game';
 import { loadGameState, saveGameState, saveDailyGameState, loadDailyGameState, clearDailyGameState, loadLanguagePreference, saveLanguagePreference } from '@/lib/utils/storage';
 import { KeyboardLayout, KeyState } from '@/lib/types/keyboard';
 import { getKeyboardState } from '@/lib/utils/keyboard';
-import { WinCelebration } from '@/components/game/WinCelebration';
 
 export function Game() {
   const [showMenu, setShowMenu] = useState(true);
@@ -26,18 +25,17 @@ export function Game() {
   const [gameMode, setGameMode] = useState<GameMode>('infinite');
   const [keyboardLayout, setKeyboardLayout] = useState<KeyboardLayout>(() => {
     const userSavedLayout = loadGameState<KeyboardLayout | null>('keyboardLayout', null);
-    if (userSavedLayout) {
-      return userSavedLayout;
-    }
+    if (userSavedLayout) return userSavedLayout;
     const initialLanguage = loadLanguagePreference();
     return initialLanguage === 'fr' ? 'azerty' : 'qwerty';
   });
   const [shake, setShake] = useState(false);
   const [showReviewCard, setShowReviewCard] = useState(false);
   const [keyStates, setKeyStates] = useState<Record<string, KeyState>>({});
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const { toast } = useToast();
-  const { stats } = useGameStats({ gameMode });
+  const { stats } = useGameStats({ gameMode, language });
 
   const {
     wordLength,
@@ -69,7 +67,7 @@ export function Game() {
     const isDailyMode = mode === 'wordOfTheDay' || mode === 'todaysSet';
 
     if (isDailyMode) {
-      const savedState = loadDailyGameState(mode);
+      const savedState = loadDailyGameState(mode, language);
       const today = new Date().toDateString();
 
       if (savedState && savedState.date === today) {
@@ -85,7 +83,7 @@ export function Game() {
         }
         return;
       } else if (savedState) {
-        clearDailyGameState(mode);
+        clearDailyGameState(mode, language);
       }
     }
 
@@ -98,6 +96,28 @@ export function Game() {
       });
     }
   }, [newGame, language, toast, loadInProgressGame]);
+
+  useEffect(() => {
+    if (!isInitialLoad) return;
+
+    const attemptResume = async () => {
+        const today = new Date().toDateString();
+        const wotdState = loadDailyGameState('wordOfTheDay', language);
+        if (wotdState && wotdState.date === today && !wotdState.revealedAnswer) {
+            await handleStartGame('wordOfTheDay');
+            return;
+        }
+
+        const todaysSetState = loadDailyGameState('todaysSet', language);
+        if (todaysSetState && todaysSetState.date === today && !todaysSetState.revealedAnswer) {
+            await handleStartGame('todaysSet');
+        }
+    };
+
+    attemptResume().finally(() => {
+        setIsInitialLoad(false);
+    });
+  }, [isInitialLoad, language, handleStartGame]);
 
   const handleSubmitGuess = useCallback(async () => {
     const result = await submitGuess(currentGuess);
@@ -168,6 +188,8 @@ export function Game() {
     revealedAnswer,
     onShowStats: setShowReviewCard,
     gameMode,
+    language,
+    toast,
   });
 
   const handleLanguageChange = (newLang: Language) => {
@@ -183,7 +205,7 @@ export function Game() {
   const handleHome = () => {
     const isDailyMode = gameMode === 'wordOfTheDay' || gameMode === 'todaysSet';
     if (isPlaying && isDailyMode && !gameOver) {
-      saveDailyGameState(gameMode, {
+      saveDailyGameState(gameMode, language, {
         date: new Date().toDateString(),
         guesses: guesses,
         revealedAnswer: revealedAnswer,
@@ -204,8 +226,6 @@ export function Game() {
     setKeyStates(newKeyStates);
   }, [guesses]);
 
-  const isWon = gameOver && guesses.length > 0 && guesses[guesses.length - 1].isCorrect;
-
   const initialBoardStates: LetterState[] = Array(wordLength).fill('empty');
   if (wordLength > 0 && !gameOver) {
       initialBoardStates[0] = 'correct';
@@ -213,12 +233,6 @@ export function Game() {
 
   return (
     <>
-      <WinCelebration
-        isWon={isWon}
-        streak={stats.currentStreak}
-        guesses={guesses.length}
-        language={language}
-      />
       <AnimatePresence>
         {showMenu && (
           <MainMenu

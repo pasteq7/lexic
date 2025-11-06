@@ -42,9 +42,9 @@ export function MainMenu({
   const [showHelp, setShowHelp] = useState(false);
   const [showStats, setShowStats] = useState(false);
   
-  const { stats: infiniteStats } = useGameStats({ gameMode: 'infinite' });
-  const { stats: wordOfTheDayStats } = useGameStats({ gameMode: 'wordOfTheDay' });
-  const { stats: todaysSetStats } = useGameStats({ gameMode: 'todaysSet' });
+  const { stats: infiniteStats } = useGameStats({ gameMode: 'infinite', language: selectedLanguage });
+  const { stats: wordOfTheDayStats } = useGameStats({ gameMode: 'wordOfTheDay', language: selectedLanguage });
+  const { stats: todaysSetStats } = useGameStats({ gameMode: 'todaysSet', language: selectedLanguage });
 
   const toggleLanguage = () => {
     const newLang = selectedLanguage === 'en' ? 'fr' : 'en';

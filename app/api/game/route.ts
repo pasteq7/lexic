@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getRandomWord, getWordOfTheDay } from '@/lib/game/words';
+import { getRandomWord, getWordOfTheDay, getTodaysSetWord } from '@/lib/game/words';
 import { cookies } from 'next/headers';
 import { GameMode } from '@/lib/types/game';
 
@@ -13,7 +13,9 @@ export async function POST(request: Request) {
         case 'wordOfTheDay':
           word = getWordOfTheDay(language);
           break;
-        case 'todaysSet': // For now, same as infinite
+        case 'todaysSet':
+          word = getTodaysSetWord(language);
+          break;
         case 'infinite':
         default:
           word = getRandomWord(language);
@@ -26,6 +28,7 @@ export async function POST(request: Request) {
       cookies().set('gameWord', word, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
       });
       
       return NextResponse.json({

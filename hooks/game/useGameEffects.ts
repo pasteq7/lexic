@@ -1,7 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { useGameStats } from '../stats/useGameStats';
 import { GuessResult, GameMode } from '@/lib/types/game';
-import { saveGameState, clearDailyGameState } from '@/lib/utils/storage';
+import { Language } from '@/lib/types/i18n';
+import { t } from '@/lib/i18n/translations';
+import { clearDailyGameState } from '@/lib/utils/storage';
+import { type Toast } from '@/hooks/use-toast';
 
 interface UseGameEffectsProps {
   gameOver: boolean;
@@ -9,6 +12,8 @@ interface UseGameEffectsProps {
   revealedAnswer: string | null;
   onShowStats: (show: boolean) => void;
   gameMode: GameMode;
+  language: Language;
+  toast: ({ ...props }: Toast) => void;
 }
 
 export function useGameEffects({
@@ -16,17 +21,17 @@ export function useGameEffects({
   guesses,
   revealedAnswer,
   onShowStats,
-  gameMode
+  gameMode,
+  language,
+  toast
 }: UseGameEffectsProps) {
-  const { updateGameResult } = useGameStats({ gameMode });
+  const { updateGameResult } = useGameStats({ gameMode, language });
   const hasUpdatedStats = useRef(false);
 
-  // Handle game completion
   useEffect(() => {
     if (gameOver && revealedAnswer && !hasUpdatedStats.current) {
       const isWon = guesses.length > 0 && guesses[guesses.length - 1].isCorrect;
       
-      // Update game statistics only once
       hasUpdatedStats.current = true;
       updateGameResult({
         won: isWon,
@@ -35,36 +40,32 @@ export function useGameEffects({
         timestamp: Date.now()
       });
 
-      // Clear the in-progress game state upon completion for daily modes
-      if (gameMode === 'wordOfTheDay' || gameMode === 'todaysSet') {
-        clearDailyGameState(gameMode);
+      if (isWon) {
+        toast({
+            title: t('youWon', language),
+            variant: 'success',
+            duration: 4000,
+        });
+      } else {
+        toast({
+            title: t('gameOver', language),
+            description: t('answer', language, { word: revealedAnswer }),
+            variant: 'destructive',
+            duration: 5000,
+        });
       }
 
-      // Show stats card with delay, but not for daily wins
-      if (!isWon || gameMode === 'infinite') {
-        setTimeout(() => {
-          onShowStats(true);
-        }, 1500);
+      if (gameMode === 'wordOfTheDay' || gameMode === 'todaysSet') {
+        clearDailyGameState(gameMode, language);
       }
+
+      setTimeout(() => {
+        onShowStats(true);
+      }, 1500);
     }
 
-    // Reset the flag when the game is not over
     if (!gameOver) {
       hasUpdatedStats.current = false;
     }
-  }, [gameOver, guesses, revealedAnswer, updateGameResult, onShowStats, gameMode]);
-
-  // Save current game state
-  useEffect(() => {
-    if (guesses.length > 0) {
-      saveGameState('currentGame', {
-        guesses: guesses.map(g => ({
-          word: g.word,
-          isCorrect: g.isCorrect
-        })), // Store minimal guess info
-        answer: revealedAnswer,
-        timestamp: Date.now()
-      });
-    }
-  }, [guesses, revealedAnswer]);
+  }, [gameOver, guesses, revealedAnswer, updateGameResult, onShowStats, gameMode, language, toast]);
 }

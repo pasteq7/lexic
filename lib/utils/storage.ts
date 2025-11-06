@@ -37,40 +37,38 @@ export interface DailyGameState {
   revealedAnswer: string | null;
 }
 
-export function saveDailyGameState(gameMode: GameMode, state: DailyGameState): void {
-  if (typeof window !== 'undefined') {
-    if (gameMode === 'infinite') return; // Don't save for infinite mode
-    const key = `lexic-daily-game-${gameMode}`;
-    try {
-      window.localStorage.setItem(key, JSON.stringify(state));
-    } catch (error) {
-      console.error(`Failed to save daily game state for ${gameMode}:`, error);
-    }
+export function saveDailyGameState(gameMode: GameMode, language: Language, state: DailyGameState): void {
+  if (typeof window === 'undefined' || gameMode === 'infinite') return;
+  
+  const key = `lexic-daily-game-${gameMode}-${language}`;
+  try {
+    window.localStorage.setItem(key, JSON.stringify(state));
+  } catch (error) {
+    console.error(`Failed to save daily game state for ${gameMode} in ${language}:`, error);
   }
 }
 
-export function loadDailyGameState(gameMode: GameMode): DailyGameState | null {
+export function loadDailyGameState(gameMode: GameMode, language: Language): DailyGameState | null {
   if (typeof window === 'undefined' || gameMode === 'infinite') return null;
   
-  const key = `lexic-daily-game-${gameMode}`;
+  const key = `lexic-daily-game-${gameMode}-${language}`;
   try {
     const saved = window.localStorage.getItem(key);
     return saved ? JSON.parse(saved) as DailyGameState : null;
   } catch (error)    {
-    console.error(`Failed to load daily game state for ${gameMode}:`, error);
+    console.error(`Failed to load daily game state for ${gameMode} in ${language}:`, error);
     return null;
   }
 }
 
-export function clearDailyGameState(gameMode: GameMode): void {
-  if (typeof window !== 'undefined') {
-    if (gameMode === 'infinite') return;
-    const key = `lexic-daily-game-${gameMode}`;
-    try {
-      window.localStorage.removeItem(key);
-    } catch (error) {
-      console.error(`Failed to clear daily game state for ${gameMode}:`, error);
-    }
+export function clearDailyGameState(gameMode: GameMode, language: Language): void {
+  if (typeof window === 'undefined' || gameMode === 'infinite') return;
+
+  const key = `lexic-daily-game-${gameMode}-${language}`;
+  try {
+    window.localStorage.removeItem(key);
+  } catch (error) {
+    console.error(`Failed to clear daily game state for ${gameMode} in ${language}:`, error);
   }
 }
 
