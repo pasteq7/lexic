@@ -26,6 +26,8 @@ interface GameBoardProps {
   isLoading: boolean;
   gameMode: GameMode;
   initialStates?: LetterState[];
+  todaysSetIndex?: number;
+  todaysSetTotal?: number;
 }
 
 export function GameBoard({
@@ -46,6 +48,8 @@ export function GameBoard({
   isLoading,
   gameMode,
   initialStates,
+  todaysSetIndex,
+  todaysSetTotal,
 }: GameBoardProps) {
   if (isLoading) {
     return (
@@ -59,6 +63,13 @@ export function GameBoard({
     <div className="relative flex-grow flex flex-col items-center justify-center w-full max-w-lg mx-auto p-4">
       {/* Game Area */}
       <div className="w-full flex flex-col items-center justify-center gap-4">
+        {gameMode === 'todaysSet' && todaysSetTotal && (
+          <div className="text-center mb-2">
+            <h3 className="text-xl font-bold text-primary">
+              {`Word ${todaysSetIndex! + 1} of ${todaysSetTotal}`}
+            </h3>
+          </div>
+        )}
         <Board
           guesses={guesses}
           currentGuess={currentGuess}

@@ -3,8 +3,7 @@ import React from 'react';
 import { GameStats, GameMode } from '@/lib/types/game';
 import { Language } from '@/lib/types/i18n';
 import { t } from '@/lib/i18n/translations';
-import { TRIES } from '@/lib/game/constants';
-import { cn } from '@/lib/utils'; // Added missing import
+import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface DetailedStatsProps {
@@ -53,6 +52,7 @@ const SingleModeStats = ({ stats, language }: { stats: GameStats; language: Lang
 
   const guessDistribution = stats.guessDistribution || {};
   const maxCount = Math.max(0, ...Object.values(guessDistribution));
+  const sortedDistributionKeys = Object.keys(guessDistribution).map(Number).sort((a, b) => a - b);
 
   return (
     <div className="space-y-6">
@@ -68,16 +68,22 @@ const SingleModeStats = ({ stats, language }: { stats: GameStats; language: Lang
           {t('guessDistribution', language)}
         </h3>
         <div className="space-y-1.5">
-          {Array.from({ length: TRIES }, (_, i) => i + 1).map(guess => (
-            <div key={guess} className="flex items-center gap-3">
-              <div className="w-4 text-sm font-bold text-muted-foreground">{guess}</div>
-              <GuessDistributionBar 
-                count={guessDistribution[guess] || 0} 
-                total={stats.gamesWon} 
-                isHighest={(guessDistribution[guess] || 0) === maxCount && maxCount > 0} 
-              />
-            </div>
-          ))}
+          {stats.gamesWon > 0 && sortedDistributionKeys.length > 0 ? (
+            sortedDistributionKeys.map(guess => (
+              <div key={guess} className="flex items-center gap-3">
+                <div className="w-4 text-sm font-bold text-muted-foreground">{guess}</div>
+                <GuessDistributionBar 
+                  count={guessDistribution[guess]} 
+                  total={stats.gamesWon} 
+                  isHighest={(guessDistribution[guess] || 0) === maxCount && maxCount > 0} 
+                />
+              </div>
+            ))
+          ) : (
+            <p className="text-center text-muted-foreground text-sm py-4">
+              {t('gamesWon', language)}: 0
+            </p>
+          )}
         </div>
       </div>
     </div>

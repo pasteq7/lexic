@@ -1,6 +1,6 @@
-// app/api/game/route.ts - ROBUST ERROR HANDLING
+// app/api/game/route.ts
 import { NextResponse } from 'next/server';
-import { getRandomWord, getWordOfTheDay, getTodaysSetWord } from '@/lib/game/words';
+import { getRandomWord, getWordOfTheDay, getTodaysUniqueSet } from '@/lib/game/words';
 import { cookies } from 'next/headers';
 import { GameMode } from '@/lib/types/game';
 
@@ -13,80 +13,40 @@ interface GameRequest {
 
 export async function POST(request: Request) {
   try {
-    // Parse request body with validation
-    let body: GameRequest;
-    try {
-      body = await request.json();
-    } catch {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'invalidRequest' 
-      }, { status: 400 });
-    }
-
+    const body: GameRequest = await request.json();
     const { action, language = 'en', gameMode = 'infinite', sessionId } = body;
-    
-    // Validate action
+
     if (action !== 'new') {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'invalidAction' 
-      }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'invalidAction' }, { status: 400 });
     }
 
-    // Validate language
-    if (language !== 'en' && language !== 'fr') {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'invalidLanguage' 
-      }, { status: 400 });
-    }
-
-    // Validate game mode
-    const validModes = ['infinite', 'wordOfTheDay', 'todaysSet'];
-    if (!validModes.includes(gameMode)) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'invalidGameMode' 
-      }, { status: 400 });
-    }
-
-    // Select word based on game mode
     let word: string;
-    try {
-      switch(gameMode as GameMode) {
-        case 'wordOfTheDay':
-          word = getWordOfTheDay(language as 'en' | 'fr');
-          break;
-        case 'todaysSet':
-          word = getTodaysSetWord(language as 'en' | 'fr');
-          break;
-        case 'infinite':
-        default:
-          word = getRandomWord(language as 'en' | 'fr');
-          break;
-      }
-    } catch (error) {
-      console.error('Word selection error:', error);
-      return NextResponse.json({ 
-        success: false, 
-        error: 'noWordsAvailable' 
-      }, { status: 500 });
+    let wordSet: string[] = [];
+
+    const selectedLanguage = language as 'en' | 'fr';
+
+    switch (gameMode as GameMode) {
+      case 'wordOfTheDay':
+        word = getWordOfTheDay(selectedLanguage);
+        break;
+      case 'todaysSet':
+        // Generate a set of 3 unique words
+        wordSet = getTodaysUniqueSet(selectedLanguage, 3);
+        if (wordSet.length < 3) {
+           return NextResponse.json({ success: false, error: 'noWordsAvailable' }, { status: 500 });
+        }
+        word = wordSet[0]; // The first word of the set
+        break;
+      case 'infinite':
+      default:
+        word = getRandomWord(selectedLanguage);
+        break;
     }
 
-    // Validate word
-    if (!word || word.length < 4 || word.length > 9) {
-      console.error('Invalid word generated:', word);
-      return NextResponse.json({ 
-        success: false, 
-        error: 'invalidWordGenerated' 
-      }, { status: 500 });
+    if (!word) {
+      return NextResponse.json({ success: false, error: 'noWordsAvailable' }, { status: 500 });
     }
 
-    const length = word.length;
-    const firstLetter = word.charAt(0).toLowerCase();
-
-    // Store word in httpOnly cookie with session tracking
     const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -95,44 +55,30 @@ export async function POST(request: Request) {
       path: '/',
     };
 
-    try {
-      cookies().set('gameWord', word, cookieOptions);
-      
-      // Store session info for debugging
-      if (sessionId) {
-        cookies().set('gameSession', sessionId, {
-          ...cookieOptions,
-          httpOnly: false, // Allow client to read this
-        });
-      }
-    } catch (error) {
-      console.error('Cookie error:', error);
-      // Continue anyway - game can still work without cookies
+    // For "Today's Set", store the whole set as a comma-separated string
+    const wordToStore = gameMode === 'todaysSet' ? wordSet.join(',') : word;
+    cookies().set('gameWord', wordToStore, cookieOptions);
+
+    if (sessionId) {
+      cookies().set('gameSession', sessionId, { ...cookieOptions, httpOnly: false });
     }
 
-    // Return success response
     return NextResponse.json({
       success: true,
-      length,
-      firstLetter,
+      length: word.length,
+      firstLetter: word.charAt(0).toLowerCase(),
       gameMode,
       timestamp: Date.now(),
+      // For 'todaysSet', let the client know how many words there are
+      todaysSetTotal: gameMode === 'todaysSet' ? wordSet.length : undefined,
     });
 
   } catch (error) {
-    // Catch-all error handler
     console.error('Game API error:', error);
-    return NextResponse.json({ 
-      success: false, 
-      error: 'serverError' 
-    }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'serverError' }, { status: 500 });
   }
 }
 
-// Health check endpoint
 export async function GET() {
-  return NextResponse.json({ 
-    status: 'ok',
-    timestamp: Date.now(),
-  });
+  return NextResponse.json({ status: 'ok', timestamp: Date.now() });
 }

@@ -1,3 +1,4 @@
+// lib/game/words.ts
 import { Language } from '@/lib/types/i18n';
 import { MIN_WORD_LENGTH, MAX_WORD_LENGTH } from './constants';
 import { LetterState } from '@/lib/types/game';
@@ -68,9 +69,29 @@ export function getWordOfTheDay(language: Language = 'en'): string {
   return getDeterministicWord(language, 0);
 }
 
-export function getTodaysSetWord(language: Language = 'en'): string {
-  // Use a different seed to get a different, but still deterministic, word.
-  return getDeterministicWord(language, 1);
+export function getTodaysUniqueSet(language: Language = 'en', size: number = 3): string[] {
+    const wordSet = new Set<string>();
+    const normalizedWordSet = new Set<string>();
+    let seed = 1; // Start seed for the set (0 is for word of the day)
+
+    while (wordSet.size < size) {
+        const word = getDeterministicWord(language, seed);
+        const normalizedWord = normalizeWord(word);
+
+        if (!normalizedWordSet.has(normalizedWord)) {
+            wordSet.add(word);
+            normalizedWordSet.add(normalizedWord);
+        }
+        seed++;
+
+        // Failsafe to prevent an infinite loop if we can't find unique words
+        if (seed > 1000) {
+            console.error("Could not generate a unique word set. Breaking loop.");
+            break;
+        }
+    }
+
+    return Array.from(wordSet);
 }
 
 

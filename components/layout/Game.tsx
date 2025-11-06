@@ -1,4 +1,4 @@
-// components/layout/Game.tsx - SIMPLIFIED & ROBUST
+// components/layout/Game.tsx
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -15,8 +15,6 @@ import { t } from '@/lib/i18n/translations';
 import { Language } from '@/lib/types/i18n';
 import { GameMode, LetterState } from '@/lib/types/game';
 import {
-  loadDailyGameState,
-  saveDailyGameState,
   loadLanguagePreference,
   saveLanguagePreference,
   loadGameState,
@@ -32,9 +30,10 @@ export function Game() {
   const [showReviewCard, setShowReviewCard] = useState(false);
 
   // Settings
-  const [language, setLanguage] = useState<Language>(() => loadLanguagePreference());
+  const [language, setLanguage] = useState<Language>(loadLanguagePreference);
   const [keyboardLayout, setKeyboardLayout] = useState<KeyboardLayout>(() => {
     const saved = loadGameState<KeyboardLayout | null>('keyboardLayout', null);
+    // Corrected the syntax error here
     return saved || (language === 'fr' ? 'azerty' : 'qwerty');
   });
 
@@ -44,7 +43,6 @@ export function Game() {
     newGame,
     submitGuess,
     updateCurrentGuess,
-    loadInProgressGame,
     resetGame,
     clearToast
   } = useGameEngine();
@@ -52,7 +50,7 @@ export function Game() {
   const { toast } = useToast();
   const { stats, updateGameResult } = useGameStats({
     gameMode: state.gameMode,
-    language: state.language
+    language: language // Pass correct language
   });
 
   // Compute keyboard states from guesses
@@ -75,8 +73,6 @@ export function Game() {
   const handleLanguageChange = useCallback((newLang: Language) => {
     setLanguage(newLang);
     saveLanguagePreference(newLang);
-
-    // Auto-switch keyboard layout if user hasn't manually set one
     const userLayout = loadGameState<KeyboardLayout | null>('keyboardLayout', null);
     if (!userLayout) {
       setKeyboardLayout(newLang === 'fr' ? 'azerty' : 'qwerty');
@@ -94,74 +90,34 @@ export function Game() {
     setShowReviewCard(false);
     setShowMenu(false);
     setIsPlaying(true);
-
-    const result = await newGame({ gameMode: mode, language });
-
-    if (result.success) {
-      // Check for saved progress in daily modes
-      if (mode === 'wordOfTheDay' || mode === 'todaysSet') {
-        const savedState = loadDailyGameState(mode, language);
-        if (savedState) {
-          loadInProgressGame(savedState, {
-            wordLength: result.length,
-            firstLetter: result.firstLetter
-          });
-        }
-      }
-    }
-  }, [newGame, language, loadInProgressGame]);
+    await newGame({ gameMode: mode, language });
+  }, [newGame, language]);
 
   // Handle key press
   const handleKeyPress = useCallback((key: string) => {
-    // Special case: Enter on game over in infinite mode starts new game
     if (state.gameOver && key.toLowerCase() === 'enter' && state.gameMode === 'infinite') {
       handleStartGame(state.gameMode);
       return;
     }
-
-    // Don't process keys if not playing or during submission
     if (!isPlaying || state.isSubmitting || state.isLoading) return;
 
     const normalizedKey = key.toLowerCase();
-
     switch (normalizedKey) {
       case 'enter':
-        if (state.currentGuess.length === state.wordLength) {
-          submitGuess();
-        }
+        if (state.currentGuess.length === state.wordLength) submitGuess();
         break;
-
       case 'backspace':
-        // Prevent deleting first letter
         if (state.currentGuess.length > state.firstLetter.length) {
           updateCurrentGuess(state.currentGuess.slice(0, -1));
         }
         break;
-
       default:
-        // Only accept valid letters
-        if (
-          key.length === 1 &&
-          /^[a-zàâäéèêëîïôöùûüÿçæœ]$/i.test(key) &&
-          state.currentGuess.length < state.wordLength
-        ) {
+        if (key.length === 1 && /^[a-zàâäéèêëîïôöùûüÿçæœ]$/i.test(key) && state.currentGuess.length < state.wordLength) {
           updateCurrentGuess(state.currentGuess + normalizedKey);
         }
         break;
     }
-  }, [
-    state.gameOver,
-    state.gameMode,
-    state.isSubmitting,
-    state.isLoading,
-    state.currentGuess,
-    state.wordLength,
-    state.firstLetter,
-    isPlaying,
-    handleStartGame,
-    submitGuess,
-    updateCurrentGuess
-  ]);
+  }, [state, isPlaying, handleStartGame, submitGuess, updateCurrentGuess]);
 
   // Physical keyboard listener
   useEffect(() => {
@@ -169,7 +125,6 @@ export function Game() {
       if (!isPlaying) return;
       handleKeyPress(event.key);
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isPlaying, handleKeyPress]);
@@ -189,54 +144,24 @@ export function Game() {
   // Handle game over
   useEffect(() => {
     if (state.gameOver && state.revealedAnswer) {
-      const isWon = state.guesses.length > 0 &&
-                    state.guesses[state.guesses.length - 1].isCorrect;
+      const lastGuess = state.guesses[state.guesses.length - 1];
+      const isWon = lastGuess?.isCorrect ?? false;
+      
+      let totalGuesses = state.guesses.length;
+      if (state.gameMode === 'todaysSet') {
+        totalGuesses += state.todaysSetGuesses.reduce((a, b) => a + b, 0);
+      }
 
-      // **FIX: Update stats on game over**
       updateGameResult({
         won: isWon,
-        numGuesses: state.guesses.length,
+        numGuesses: totalGuesses,
         word: state.revealedAnswer,
         timestamp: Date.now()
       });
-
-      // Show toast
-      if (isWon) {
-        toast({
-          title: t('youWon', language),
-          variant: 'success',
-          duration: 4000,
-        });
-      } else {
-        toast({
-          title: t('gameOver', language),
-          description: t('answer', language, { word: state.revealedAnswer }),
-          variant: 'destructive',
-          duration: 5000,
-        });
-      }
-
-      // Show stats after delay
-      setTimeout(() => {
-        setShowReviewCard(true);
-      }, 1500);
+      
+      setTimeout(() => setShowReviewCard(true), 1500);
     }
-  }, [state.gameOver, state.revealedAnswer, state.guesses, language, toast, updateGameResult]);
-
-  // Auto-save daily game progress
-  useEffect(() => {
-    if (
-      isPlaying &&
-      !state.gameOver &&
-      state.guesses.length > 0 &&
-      (state.gameMode === 'wordOfTheDay' || state.gameMode === 'todaysSet')
-    ) {
-      saveDailyGameState(state.gameMode, language, {
-        guesses: state.guesses,
-        revealedAnswer: state.revealedAnswer
-      });
-    }
-  }, [state.guesses, state.gameOver, state.gameMode, language, isPlaying, state.revealedAnswer]);
+  }, [state.gameOver, state.revealedAnswer, state.guesses, language, toast, updateGameResult, state.gameMode, state.todaysSetGuesses]);
 
   // Handle home button
   const handleHome = useCallback(() => {
@@ -249,25 +174,13 @@ export function Game() {
   return (
     <>
       <AnimatePresence>
-        {showMenu && (
-          <MainMenu
-            selectedLanguage={language}
-            onLanguageChange={handleLanguageChange}
-            onStartGame={handleStartGame}
-            keyboardLayout={keyboardLayout}
-            onKeyboardLayoutChange={handleKeyboardLayoutChange}
-          />
-        )}
+        {showMenu && <MainMenu selectedLanguage={language} onLanguageChange={handleLanguageChange} onStartGame={handleStartGame} keyboardLayout={keyboardLayout} onKeyboardLayoutChange={handleKeyboardLayoutChange} />}
       </AnimatePresence>
 
       <div className="flex flex-col min-h-screen relative z-20">
         {isPlaying && !showMenu && (
           <div className="h-14 sm:h-20">
-            <Button
-              variant="outline"
-              onClick={handleHome}
-              className="absolute top-2 sm:top-6 left-1/2 -translate-x-1/2 z-10"
-            >
+            <Button variant="outline" onClick={handleHome} className="absolute top-2 sm:top-6 left-1/2 -translate-x-1/2 z-10">
               <Home className="mr-2 h-4 w-4" />
               {t('home', language)}
             </Button>
@@ -294,6 +207,8 @@ export function Game() {
               isLoading={state.isLoading}
               gameMode={state.gameMode}
               initialStates={initialBoardStates}
+              todaysSetIndex={state.todaysSetIndex}
+              todaysSetTotal={state.todaysSetTotal}
             />
           </Card>
         )}
