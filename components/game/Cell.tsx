@@ -46,14 +46,15 @@ export function Cell({
   );
 
   const variants = {
-    empty: { scale: 1, rotateX: 0 },
+    empty: { scale: 1 },
     placed: { scale: [1, 1.1, 1], transition: { duration: 0.2 } },
     revealed: {
-      rotateX: 360,
+      scale: [1, 1.1, 0.9, 1.05, 1],
       transition: {
-        duration: 0.8,
+        type: 'spring',
+        stiffness: 400,
+        damping: 15,
         delay: delay * 0.1,
-        ease: 'easeInOut'
       }
     }
   };
@@ -73,7 +74,7 @@ export function Cell({
     >
       {isLocked && (
         <motion.div
-          className="absolute -top-1 -right-1 bg-primary/20 rounded-full p-0.5"
+          className="absolute bg-primary/20 rounded-full p-0.5"
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.3, type: 'spring', stiffness: 500 }}

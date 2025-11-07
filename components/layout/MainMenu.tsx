@@ -102,8 +102,8 @@ export function MainMenu({
         
         <div className="space-y-4">
           <motion.div whileHover={!wordOfTheDayCompleted ? buttonHoverAnimation : {}}>
-            <Button 
-              variant="default" 
+            <Button
+              variant={wordOfTheDayCompleted ? "outline" : "default"}
               size="lg"
               className="w-full py-7 sm:py-8 text-lg sm:text-xl justify-between group"
               onClick={() => onStartGame('wordOfTheDay')}
@@ -121,8 +121,8 @@ export function MainMenu({
           </motion.div>
           
           <motion.div whileHover={!todaysSetCompleted ? buttonHoverAnimation : {}}>
-            <Button 
-              variant="default" 
+            <Button
+              variant={todaysSetCompleted ? "outline" : "default"}
               size="lg"
               className="w-full py-7 sm:py-8 text-lg sm:text-xl justify-between group"
               onClick={() => onStartGame('todaysSet')}

@@ -115,11 +115,11 @@ export function ReviewCard({
             <Button
               onClick={onNewGame}
               variant="outline"
-              className="w-full py-6 text-lg font-bold"
+              className="w-full py-6 text-lg font-bold text-primary"
             >
               {t('newGame', language)}
             </Button>
-            <div className="flex items-center gap-2 text-sm text-primary/50">
+            <div className="flex items-center gap-2 text-sm text-primary/70">
               <Keyboard size={14} />
               <span>{t('pressEnterNewGame', language)}</span>
             </div>
