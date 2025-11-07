@@ -5,8 +5,8 @@ import { motion } from 'framer-motion';
 import { KeyboardLayout } from '@/lib/types/keyboard';
 import { Language } from '@/lib/types/i18n';
 import { GameMode, GameStats } from '@/lib/types/game';
-import { Book, Settings, BarChart, Infinity, Calendar, Sparkles, CheckCircle2 } from 'lucide-react';
-import { useState } from 'react';
+import { Book, Settings, BarChart, Infinity, Calendar, Sparkles } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { LanguageFlag } from '@/components/ui/LanguageFlag';
 import { Button } from "@/components/ui/button";
 import { SettingsDialog } from '@/components/ui/SettingsDialog';
@@ -44,10 +44,38 @@ export function MainMenu({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showStats, setShowStats] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState('');
   
   const { stats: infiniteStats } = useGameStats({ gameMode: 'infinite', language: selectedLanguage });
   const { stats: wordOfTheDayStats } = useGameStats({ gameMode: 'wordOfTheDay', language: selectedLanguage });
   const { stats: todaysSetStats } = useGameStats({ gameMode: 'todaysSet', language: selectedLanguage });
+
+  useEffect(() => {
+    const calculateTimeRemaining = () => {
+      const now = new Date();
+      // Set target to next day at 00:00:00 UTC
+      const tomorrow = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
+      
+      const diff = tomorrow.getTime() - now.getTime();
+
+      if (diff <= 0) {
+        setTimeRemaining("00:00:00");
+        // Optionally, trigger a refresh or state update to re-enable buttons
+        return;
+      }
+
+      const hours = Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0');
+      const minutes = Math.floor((diff / 1000 / 60) % 60).toString().padStart(2, '0');
+      const seconds = Math.floor((diff / 1000) % 60).toString().padStart(2, '0');
+
+      setTimeRemaining(`${hours}:${minutes}:${seconds}`);
+    };
+
+    calculateTimeRemaining(); // Initial calculation
+    const timerId = setInterval(calculateTimeRemaining, 1000); // Update every second
+
+    return () => clearInterval(timerId); // Cleanup on component unmount
+  }, []);
 
   const toggleLanguage = () => onLanguageChange(selectedLanguage === 'en' ? 'fr' : 'en');
 
@@ -83,8 +111,11 @@ export function MainMenu({
             >
               <span className="flex items-center gap-3"><Calendar className="h-6 w-6" /><span>{t('wordOfTheDay', selectedLanguage)}</span></span>
               <span className="flex items-center gap-2">
-                {wordOfTheDayCompleted && <CheckCircle2 className="h-5 w-5 text-correct" />}
-                <span className="px-3 py-1.5 rounded border-2 border-dashed border-accent">{wordOfTheDayStats.currentStreak}</span>
+                {wordOfTheDayCompleted ? (
+                  <span className="text-sm font-mono tabular-nums tracking-widest">{timeRemaining}</span>
+                ) : (
+                  <span className="px-3 py-1.5 rounded border-2 border-dashed border-accent">{wordOfTheDayStats.currentStreak}</span>
+                )}
               </span>
             </Button>
           </motion.div>
@@ -99,8 +130,11 @@ export function MainMenu({
             >
               <span className="flex items-center gap-3"><Sparkles className="h-6 w-6" /><span>{t('todaysSet', selectedLanguage)}</span></span>
                <span className="flex items-center gap-2">
-                {todaysSetCompleted && <CheckCircle2 className="h-5 w-5 text-correct" />}
-                <span className="px-3 py-1.5 rounded border-2 border-dashed border-accent">{todaysSetStats.currentStreak}</span>
+                {todaysSetCompleted ? (
+                  <span className="text-sm font-mono tabular-nums tracking-widest">{timeRemaining}</span>
+                ) : (
+                  <span className="px-3 py-1.5 rounded border-2 border-dashed border-accent">{todaysSetStats.currentStreak}</span>
+                )}
               </span>
             </Button>
           </motion.div>
