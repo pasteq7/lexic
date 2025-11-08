@@ -1,4 +1,4 @@
-// components/layout/MainMenu.tsx
+// components/layout/MainMenu.tsx - FIXED VERSION
 'use client';
 
 import { motion } from 'framer-motion';
@@ -25,13 +25,25 @@ interface MainMenuProps {
   onKeyboardLayoutChange: (layout: KeyboardLayout) => void;
 }
 
+/**
+ * Check if a daily challenge was completed today
+ * Uses UTC day comparison to be consistent across timezones
+ */
 const isCompletedToday = (stats: GameStats) => {
   if (!stats || !stats.lastCompleted) return false;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  
+  const now = new Date();
   const lastCompletion = new Date(stats.lastCompleted);
-  lastCompletion.setHours(0, 0, 0, 0);
-  return today.getTime() === lastCompletion.getTime();
+  
+  // Compare UTC dates
+  const todayUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  const lastCompletionUTC = Date.UTC(
+    lastCompletion.getUTCFullYear(), 
+    lastCompletion.getUTCMonth(), 
+    lastCompletion.getUTCDate()
+  );
+  
+  return todayUTC === lastCompletionUTC;
 };
 
 export function MainMenu({ 
@@ -60,7 +72,6 @@ export function MainMenu({
 
       if (diff <= 0) {
         setTimeRemaining("00:00:00");
-        // Optionally, trigger a refresh or state update to re-enable buttons
         return;
       }
 
@@ -71,14 +82,15 @@ export function MainMenu({
       setTimeRemaining(`${hours}:${minutes}:${seconds}`);
     };
 
-    calculateTimeRemaining(); // Initial calculation
-    const timerId = setInterval(calculateTimeRemaining, 1000); // Update every second
+    calculateTimeRemaining();
+    const timerId = setInterval(calculateTimeRemaining, 1000);
 
-    return () => clearInterval(timerId); // Cleanup on component unmount
+    return () => clearInterval(timerId);
   }, []);
 
   const toggleLanguage = () => onLanguageChange(selectedLanguage === 'en' ? 'fr' : 'en');
 
+  // Check if daily challenges are completed (win OR loss counts as completed)
   const wordOfTheDayCompleted = isCompletedToday(wordOfTheDayStats);
   const todaysSetCompleted = isCompletedToday(todaysSetStats);
 
@@ -109,12 +121,17 @@ export function MainMenu({
               onClick={() => onStartGame('wordOfTheDay')}
               disabled={wordOfTheDayCompleted}
             >
-              <span className="flex items-center gap-3"><Calendar className="h-6 w-6" /><span>{t('wordOfTheDay', selectedLanguage)}</span></span>
+              <span className="flex items-center gap-3">
+                <Calendar className="h-6 w-6" />
+                <span>{t('wordOfTheDay', selectedLanguage)}</span>
+              </span>
               <span className="flex items-center gap-2">
                 {wordOfTheDayCompleted ? (
                   <span className="text-sm font-mono tabular-nums tracking-widest">{timeRemaining}</span>
                 ) : (
-                  <span className="px-3 py-1.5 rounded border-2 border-dashed border-accent">{wordOfTheDayStats.currentStreak}</span>
+                  <span className="px-3 py-1.5 rounded border-2 border-dashed border-accent">
+                    {wordOfTheDayStats.currentStreak}
+                  </span>
                 )}
               </span>
             </Button>
@@ -128,12 +145,17 @@ export function MainMenu({
               onClick={() => onStartGame('todaysSet')}
               disabled={todaysSetCompleted}
             >
-              <span className="flex items-center gap-3"><Sparkles className="h-6 w-6" /><span>{t('todaysSet', selectedLanguage)}</span></span>
-               <span className="flex items-center gap-2">
+              <span className="flex items-center gap-3">
+                <Sparkles className="h-6 w-6" />
+                <span>{t('todaysSet', selectedLanguage)}</span>
+              </span>
+              <span className="flex items-center gap-2">
                 {todaysSetCompleted ? (
                   <span className="text-sm font-mono tabular-nums tracking-widest">{timeRemaining}</span>
                 ) : (
-                  <span className="px-3 py-1.5 rounded border-2 border-dashed border-accent">{todaysSetStats.currentStreak}</span>
+                  <span className="px-3 py-1.5 rounded border-2 border-dashed border-accent">
+                    {todaysSetStats.currentStreak}
+                  </span>
                 )}
               </span>
             </Button>
@@ -146,34 +168,82 @@ export function MainMenu({
               className="w-full py-7 sm:py-8 text-lg sm:text-xl justify-start group"
               onClick={() => onStartGame('infinite')}
             >
-              <span className="flex items-center gap-3"><Infinity className="h-6 w-6" /><span>{t('infinite', selectedLanguage)}</span></span>
+              <span className="flex items-center gap-3">
+                <Infinity className="h-6 w-6" />
+                <span>{t('infinite', selectedLanguage)}</span>
+              </span>
             </Button>
           </motion.div>
         </div>
 
-        {/* Other menu buttons... */}
+        {/* Menu buttons */}
         <div className="flex justify-center gap-3 sm:gap-4">
-            <motion.div {...MENU_ANIMATIONS.BUTTON_EXTRA}>
-                <Button variant="default" size="icon" className="h-14 w-14 sm:h-16 sm:w-16 relative group" onClick={toggleLanguage} aria-label={`Switch to ${selectedLanguage === 'en' ? 'French' : 'English'}`}>
-                    <div className="absolute inset-0 flex items-center justify-center transition-transform group-hover:scale-110"><LanguageFlag language={selectedLanguage} size={28}/></div>
-                </Button>
-            </motion.div>
-            <motion.div {...MENU_ANIMATIONS.BUTTON_EXTRA}><Button variant="default" size="icon" className="h-14 w-14 sm:h-16 sm:w-16 p-2" onClick={() => setShowHelp(true)}><Book size={24} /></Button></motion.div>
-            <motion.div {...MENU_ANIMATIONS.BUTTON_EXTRA}><Button variant="default" size="icon" className="h-14 w-14 sm:h-16 sm:w-16 p-2" onClick={() => setShowStats(true)}><BarChart size={24} /></Button></motion.div>
-            <motion.div {...MENU_ANIMATIONS.BUTTON_EXTRA}><Button variant="default" size="icon" className="h-14 w-14 sm:h-16 sm:w-16 p-2" onClick={() => setIsSettingsOpen(true)}><Settings size={24} /></Button></motion.div>
+          <motion.div {...MENU_ANIMATIONS.BUTTON_EXTRA}>
+            <Button 
+              variant="default" 
+              size="icon" 
+              className="h-14 w-14 sm:h-16 sm:w-16 relative group" 
+              onClick={toggleLanguage} 
+              aria-label={`Switch to ${selectedLanguage === 'en' ? 'French' : 'English'}`}
+            >
+              <div className="absolute inset-0 flex items-center justify-center transition-transform group-hover:scale-110">
+                <LanguageFlag language={selectedLanguage} size={28}/>
+              </div>
+            </Button>
+          </motion.div>
+          <motion.div {...MENU_ANIMATIONS.BUTTON_EXTRA}>
+            <Button variant="default" size="icon" className="h-14 w-14 sm:h-16 sm:w-16 p-2" onClick={() => setShowHelp(true)}>
+              <Book size={24} />
+            </Button>
+          </motion.div>
+          <motion.div {...MENU_ANIMATIONS.BUTTON_EXTRA}>
+            <Button variant="default" size="icon" className="h-14 w-14 sm:h-16 sm:w-16 p-2" onClick={() => setShowStats(true)}>
+              <BarChart size={24} />
+            </Button>
+          </motion.div>
+          <motion.div {...MENU_ANIMATIONS.BUTTON_EXTRA}>
+            <Button variant="default" size="icon" className="h-14 w-14 sm:h-16 sm:w-16 p-2" onClick={() => setIsSettingsOpen(true)}>
+              <Settings size={24} />
+            </Button>
+          </motion.div>
         </div>
       </motion.div>
 
       <Dialog open={showHelp} onOpenChange={setShowHelp}>
         <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle className="text-2xl mb-4">{t('howToPlay', selectedLanguage)}</DialogTitle><DialogDescription className="space-y-4 text-primary leading-relaxed">{t('gameRules', selectedLanguage).split('\n').map((rule, index) => (<p key={index}>{rule}</p>))}</DialogDescription></DialogHeader>
+          <DialogHeader>
+            <DialogTitle className="text-2xl mb-4">{t('howToPlay', selectedLanguage)}</DialogTitle>
+            <DialogDescription className="space-y-4 text-primary leading-relaxed">
+              {t('gameRules', selectedLanguage).split('\n').map((rule, index) => (
+                <p key={index}>{rule}</p>
+              ))}
+            </DialogDescription>
+          </DialogHeader>
         </DialogContent>
       </Dialog>
-      <SettingsDialog isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} onClearStorage={() => { localStorage.clear(); window.location.reload(); }} keyboardLayout={keyboardLayout} onKeyboardLayoutChange={onKeyboardLayoutChange} language={selectedLanguage}/>
+      
+      <SettingsDialog 
+        isOpen={isSettingsOpen} 
+        onClose={() => setIsSettingsOpen(false)} 
+        onClearStorage={() => { localStorage.clear(); window.location.reload(); }} 
+        keyboardLayout={keyboardLayout} 
+        onKeyboardLayoutChange={onKeyboardLayoutChange} 
+        language={selectedLanguage}
+      />
+      
       <Dialog open={showStats} onOpenChange={setShowStats}>
         <DialogContent className="max-w-lg">
-            <DialogHeader><DialogTitle className="text-2xl mb-4">{t('statistics', selectedLanguage)}</DialogTitle></DialogHeader>
-            <DetailedStats allStats={{ infinite: infiniteStats, wordOfTheDay: wordOfTheDayStats, todaysSet: todaysSetStats }} language={selectedLanguage} />
+          <DialogHeader>
+            <DialogTitle className="text-2xl mb-4">{t('statistics', selectedLanguage)}</DialogTitle>
+          </DialogHeader>
+          <DetailedStats 
+            allStats={{ 
+              infinite: infiniteStats, 
+              wordOfTheDay: wordOfTheDayStats, 
+              todaysSet: todaysSetStats 
+            }} 
+            language={selectedLanguage} 
+          />
         </DialogContent>
       </Dialog>
     </motion.div>

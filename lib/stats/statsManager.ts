@@ -1,4 +1,4 @@
-// lib/stats/statsManager.ts
+// lib/stats/statsManager.ts - FIXED VERSION
 import type { GameStats, GameResult, GameMode } from '@/lib/types/game';
 import { Language } from '@/lib/types/i18n';
 import { MAX_RECENT_GAMES } from '@/lib/game/constants';
@@ -118,24 +118,32 @@ export class StatsManager {
     
     const isDailyMode = gameMode === 'wordOfTheDay' || gameMode === 'todaysSet';
     
-    // For daily modes, prevent re-submission of stats for the same day.
+    // CRITICAL FIX: For daily modes, check if game was already completed today
+    // This prevents duplicate stat updates for the same day
     if (isDailyMode && getUTCDayNumber(currentStats.lastCompleted) === getUTCDayNumber(now)) {
+      console.log(`Daily challenge already completed today for ${gameMode} (${language})`);
       return currentStats;
     }
 
     let newCurrentStreak = currentStats.currentStreak;
+    
     if (result.won) {
-        // Check if the last completion was yesterday for a continued streak
-        const yesterday = getUTCDayNumber(now) - 1;
-        const lastCompletionDay = getUTCDayNumber(currentStats.lastCompleted);
+      // Check if the last completion was yesterday for a continued streak
+      const yesterday = getUTCDayNumber(now) - 1;
+      const lastCompletionDay = getUTCDayNumber(currentStats.lastCompleted);
 
-        if (isDailyMode) {
-             newCurrentStreak = (lastCompletionDay === yesterday) ? newCurrentStreak + 1 : 1;
-        } else {
-            newCurrentStreak += 1;
-        }
+      if (isDailyMode) {
+        newCurrentStreak = (lastCompletionDay === yesterday) ? newCurrentStreak + 1 : 1;
+      } else {
+        newCurrentStreak += 1;
+      }
     } else {
+      // CRITICAL FIX: Streak breaks on loss for daily modes
+      if (isDailyMode) {
         newCurrentStreak = 0;
+      } else {
+        newCurrentStreak = 0;
+      }
     }
 
     const newStats: GameStats = {
@@ -144,8 +152,9 @@ export class StatsManager {
       gamesWon: result.won ? currentStats.gamesWon + 1 : currentStats.gamesWon,
       currentStreak: newCurrentStreak,
       lastPlayed: now,
-      // For daily modes, only update lastCompleted on a win.
-      lastCompleted: result.won ? now : currentStats.lastCompleted,
+      // CRITICAL FIX: Update lastCompleted for BOTH wins AND losses in daily modes
+      // This marks the challenge as completed for the day
+      lastCompleted: now,
       guessDistribution: result.won ? {
         ...currentStats.guessDistribution,
         [result.numGuesses]: (currentStats.guessDistribution[result.numGuesses] || 0) + 1
