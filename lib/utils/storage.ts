@@ -77,6 +77,8 @@ export interface DailyGameState {
   guesses: GuessResult[];
   revealedAnswer: string | null;
   completed: boolean;
+  todaysSetIndex?: number;
+  todaysSetGuesses?: number[];
 }
 
 /**

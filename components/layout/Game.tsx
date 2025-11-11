@@ -107,12 +107,15 @@ export function Game() {
         if (state.currentGuess.length === state.wordLength) submitGuess();
         break;
       case 'backspace':
-        if (state.currentGuess.length > state.firstLetter.length) {
+        if (state.currentGuess.length > 1) {
           updateCurrentGuess(state.currentGuess.slice(0, -1));
         }
         break;
       default:
         if (key.length === 1 && /^[a-zàâäéèêëîïôöùûüÿçæœ]$/i.test(key) && state.currentGuess.length < state.wordLength) {
+          if (state.currentGuess.length === 1 && normalizedKey === state.firstLetter.toLowerCase()) {
+            return;
+          }
           updateCurrentGuess(state.currentGuess + normalizedKey);
         }
         break;

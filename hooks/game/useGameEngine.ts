@@ -1,6 +1,7 @@
 // hooks/game/useGameEngine.ts
 import { useReducer, useCallback, useEffect, useRef } from 'react';
 import { GameMode, GuessResult } from '@/lib/types/game';
+import { saveDailyGameState, loadDailyGameState } from '@/lib/utils/storage';
 import { Language } from '@/lib/types/i18n';
 import { TRIES } from '@/lib/game/constants';
 import { TranslationKey } from '@/lib/types/i18n';
@@ -35,10 +36,11 @@ type GameAction =
   | { type: 'SUBMIT_SUCCESS'; payload: { guess: GuessResult; isGameOver: boolean; answer?: string } }
   | { type: 'SUBMIT_FAILED'; payload: { messageKey: TranslationKey } }
   | { type: 'ADVANCE_TODAYS_SET'; payload: { nextWordInfo: { length: number; firstLetter: string }, previousGuessCount: number } }
-  | { type: 'LOAD_SAVED_GAME'; payload: { guesses: GuessResult[]; revealedAnswer: string | null; wordLength: number; firstLetter: string } }
+  | { type: 'LOAD_SAVED_GAME'; payload: { guesses: GuessResult[]; revealedAnswer: string | null; wordLength: number; firstLetter: string; todaysSetIndex?: number; todaysSetGuesses?: number[]; } }
   | { type: 'CLEAR_SHAKE' }
   | { type: 'CLEAR_TOAST' }
   | { type: 'RESET' };
+  
 
 const generateSessionId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -82,17 +84,38 @@ function gameReducer(state: GameEngineState, action: GameAction): GameEngineStat
       return { ...state, isSubmitting: true, lastActionTimestamp: timestamp };
     case 'SUBMIT_SUCCESS': {
       const newGuesses = [...state.guesses, action.payload.guess];
-      return { ...state, guesses: newGuesses, currentGuess: action.payload.isGameOver ? '' : state.firstLetter, gameOver: action.payload.isGameOver, revealedAnswer: action.payload.answer || state.revealedAnswer, isSubmitting: false, shake: false, lastActionTimestamp: timestamp };
+      const isGameOver = action.payload.isGameOver;
+      const revealedAnswer = action.payload.answer || state.revealedAnswer;
+
+      if (state.gameMode === 'wordOfTheDay' || state.gameMode === 'todaysSet') {
+        saveDailyGameState(state.gameMode, state.language, {
+          guesses: newGuesses,
+          revealedAnswer: isGameOver ? revealedAnswer : null,
+          todaysSetIndex: state.todaysSetIndex,
+          todaysSetGuesses: state.todaysSetGuesses,
+        });
+      }
+      
+      return { ...state, guesses: newGuesses, currentGuess: isGameOver ? '' : state.firstLetter, gameOver: isGameOver, revealedAnswer: revealedAnswer, isSubmitting: false, shake: false, lastActionTimestamp: timestamp };
     }
     case 'SUBMIT_FAILED':
       return { ...state, isSubmitting: false, shake: true, toast: { messageKey: action.payload.messageKey, type: 'destructive' }, lastActionTimestamp: timestamp };
     case 'ADVANCE_TODAYS_SET': {
       const { nextWordInfo, previousGuessCount } = action.payload;
+      const newTodaysSetGuesses = [...state.todaysSetGuesses, previousGuessCount];
+
+      saveDailyGameState(state.gameMode, state.language, {
+        guesses: [],
+        revealedAnswer: null,
+        todaysSetIndex: state.todaysSetIndex + 1,
+        todaysSetGuesses: newTodaysSetGuesses,
+      });
+
       return {
         ...state,
         isSubmitting: false,
         todaysSetIndex: state.todaysSetIndex + 1,
-        todaysSetGuesses: [...state.todaysSetGuesses, previousGuessCount],
+        todaysSetGuesses: newTodaysSetGuesses,
         guesses: [], // Clear board for next word
         wordLength: nextWordInfo.length,
         firstLetter: nextWordInfo.firstLetter,
@@ -102,7 +125,18 @@ function gameReducer(state: GameEngineState, action: GameAction): GameEngineStat
     }
     case 'LOAD_SAVED_GAME': {
       const isGameOver = !!action.payload.revealedAnswer || action.payload.guesses.length >= TRIES;
-      return { ...state, guesses: action.payload.guesses, revealedAnswer: action.payload.revealedAnswer, wordLength: action.payload.wordLength, firstLetter: action.payload.firstLetter, currentGuess: isGameOver ? '' : action.payload.firstLetter, gameOver: isGameOver, isLoading: false, lastActionTimestamp: timestamp };
+      return { ...state,
+        guesses: action.payload.guesses,
+        revealedAnswer: action.payload.revealedAnswer,
+        wordLength: action.payload.wordLength,
+        firstLetter: action.payload.firstLetter,
+        currentGuess: isGameOver ? '' : action.payload.firstLetter,
+        gameOver: isGameOver,
+        isLoading: false,
+        lastActionTimestamp: timestamp,
+        todaysSetIndex: action.payload.todaysSetIndex ?? 0,
+        todaysSetGuesses: action.payload.todaysSetGuesses ?? [],
+      };
     }
     case 'CLEAR_SHAKE':
       return { ...state, shake: false };
@@ -135,7 +169,22 @@ export function useGameEngine() {
       });
       const data = await response.json();
       if (!data.success) throw new Error(data.error || 'failedToStart');
-      dispatch({ type: 'GAME_LOADED', payload: { wordLength: data.length, firstLetter: data.firstLetter, todaysSetTotal: data.todaysSetTotal } });
+      const savedState = loadDailyGameState(options.gameMode, options.language);
+      if (savedState) {
+        dispatch({
+          type: 'LOAD_SAVED_GAME',
+          payload: {
+            guesses: savedState.guesses,
+            revealedAnswer: savedState.revealedAnswer,
+            wordLength: data.length,
+            firstLetter: data.firstLetter,
+            todaysSetIndex: savedState.todaysSetIndex,
+            todaysSetGuesses: savedState.todaysSetGuesses,
+          }
+        });
+      } else {
+        dispatch({ type: 'GAME_LOADED', payload: { wordLength: data.length, firstLetter: data.firstLetter, todaysSetTotal: data.todaysSetTotal } });
+      }
       return { success: true, ...data };
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') return { success: false, error: 'cancelled' };
